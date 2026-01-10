@@ -1,0 +1,22 @@
+2026/01/10-01:55:02.709 3d58 Reusing MANIFEST C:\Projects\Tool Auto Veo AI\python-tool-sora\Profile\sora01\Default\Local Storage\leveldb/MANIFEST-000001
+2026/01/10-01:55:02.716 3d58 Recovering log #46
+2026/01/10-01:55:02.727 3d58 Level-0 table #49: started
+2026/01/10-01:55:02.779 3d58 Level-0 table #49: 1404576 bytes OK
+2026/01/10-01:55:02.796 3d58 Delete type=0 #46
+2026/01/10-01:55:02.798 4b8c Compacting 4@0 + 2@1 files
+2026/01/10-01:55:02.893 4b8c Generated table #51@0: 43 keys, 2146225 bytes
+2026/01/10-01:55:02.907 4b8c Generated table #52@0: 9 keys, 11176 bytes
+2026/01/10-01:55:02.908 4b8c Compacted 4@0 + 2@1 files => 2157401 bytes
+2026/01/10-01:55:02.909 4b8c compacted to: files[ 0 2 1 0 0 0 0 ]
+2026/01/10-01:55:02.910 4b8c Delete type=2 #40
+2026/01/10-01:55:02.910 4b8c Delete type=2 #41
+2026/01/10-01:55:02.910 4b8c Delete type=2 #43
+2026/01/10-01:55:02.910 4b8c Delete type=2 #45
+2026/01/10-01:55:02.910 4b8c Delete type=2 #47
+2026/01/10-01:55:02.910 4b8c Delete type=2 #49
+2026/01/10-01:55:52.490 4b8c Level-0 table #54: started
+2026/01/10-01:55:52.560 4fd8 Current memtable full; waiting...
+2026/01/10-01:55:52.584 4b8c Level-0 table #54: 1404909 bytes OK
+2026/01/10-01:55:52.591 4b8c Delete type=0 #50
+2026/01/10-01:55:52.595 3d58 Level-0 table #56: started
+2026/01/10-01:55:52.672 3d58 Level-0 table #56: 1404901 bytes OK

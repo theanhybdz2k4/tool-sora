@@ -1,0 +1,17 @@
+{
+  "max_threads": 1,
+  "thread_delay_seconds": 2.0,
+  "wait_timeout_seconds": 300,
+  "auto_download": true,
+  "download_format": "mp4",
+  "default_aspect_ratio": "16:9",
+  "default_duration": "5s",
+  "check_interval_seconds": 10,
+  "sheet_url": "",
+  "aspect_ratio": "9:16",
+  "model": "Sora (mặc định)",
+  "image_folder": "C:\\Projects\\Tool Auto Veo AI\\python-tool-sora\\Image",
+  "output_folder": "C:/Projects/Tool Auto Veo AI/python-tool-sora/Output/Test",
+  "default_resolution": "480p",
+  "default_variations": "1"
+}

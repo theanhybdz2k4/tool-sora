@@ -1,0 +1,5 @@
+# File lưu thông tin tài khoản
+# Mỗi dòng là 1 account, format: email|password hoặc token
+# Ví dụ:
+# account1@gmail.com|password123
+# account2@gmail.com|password456

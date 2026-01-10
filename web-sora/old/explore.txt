@@ -1,0 +1,989 @@
+<body class="min-h-screen overscroll-none bg-token-bg-primary font-sans antialiased"><!--$--><!--/$-->
+    <script src="https://sora-cdn.oaistatic.com/_next/static/chunks/webpack-caa4b94efa41b55c.js" nonce="" async=""></script>
+    <script nonce="">
+        (self.__next_f = self.__next_f || []).push([0]);
+        self.__next_f.push([2, null])
+    </script>
+    <script nonce="">
+        self.__next_f.push([1,
+            "1:HL[\"https://sora-cdn.oaistatic.com/_next/static/css/913a2645331de760.css\",\"style\"]\n2:HL[\"https://sora-cdn.oaistatic.com/_next/static/css/eda963f33b3839f5.css\",\"style\"]\n3:HL[\"https://sora-cdn.oaistatic.com/_next/static/css/0ec380495596127c.css\",\"style\"]\n"
+        ])
+    </script>
+    <script nonce="">
+        self.__next_f.push([1,
+            "4:I[99199,[],\"\"]\n6:I[82927,[],\"ClientPageRoot\"]\n7:I[21258,[\"3346\",\"static/chunks/93923311-58fd0a6644d29e2c.js\",\"8282\",\"static/chunks/8282-815445aff6e3a57f.js\",\"4287\",\"static/chunks/4287-212baddf6d0d7703.js\",\"227\",\"static/chunks/227-e43d47911332b222.js\",\"9\",\"static/chunks/9-bbcd19b84a9b4955.js\",\"6086\",\"static/chunks/6086-bc891b0d2d5e7c09.js\",\"7364\",\"static/chunks/7364-d88a2a5e330527bf.js\",\"5127\",\"static/chunks/5127-992e23ed3de7cebd.js\",\"1024\",\"static/chunks/1024-dbdc1a5342f39565.js\",\"5017\",\"static/chunks/5017-002ce02130c2797b.js\",\"5075\",\"static/chunks/5075-0209dcc113df6db7.js\",\"3975\",\"static/chunks/3975-4933ca7c8920fc7c.js\",\"9687\",\"static/chunks/9687-75b29102063a7f56.js\",\"5137\",\"static/chunks/5137-bf1f6221994b8080.js\",\"8912\",\"static/chunks/8912-a9146b139ffbbfb0.js\",\"4811\",\"static/chunks/4811-3d8615b6bd6a984d.js\",\"5831\",\"static/chunks/5831-515fee24b5210e84.js\",\"9421\",\"static/chunks/9421-5a6abb8635262bc4.js\",\"6606\",\"static/chunks/6606-74e5ca408e00724d.js\",\"8200\",\"static/chunks/8200-ba7038c29b79c3ec.js\",\"7005\",\"static/chunks/7005-2c97221532f6b4c9.js\",\"9388\",\"static/chunks/9388-2ddae49857acf502.js\",\"7124\",\"static/chunks/7124-9d9e194ae6b966a5.js\",\"5421\",\"static/chunks/app/(main)/(home)/explore/page-4363878114a46a7e.js\"],\"default\",1]\n8:I[66546,[],\"\"]\n9:I[36269,[],\"\"]\na:I[50458,[\"3346\",\"static/chunks/93923311-58fd0a6644d29e2c.js\",\"8282\",\"static/chunks/8282-815445aff6e3a57f.js\",\"4287\",\"static/chunks/4287-212baddf6d0d7703.js\",\"227\",\"static/chunks/227-e43d47911332b222.js\",\"9\",\"static/chunks/9-bbcd19b84a9b4955.js\",\"6086\",\"static/chunks/6086-bc891b0d2d5e7c09.js\",\"7364\",\"static/chunks/7364-d88a2a5e330527bf.js\",\"5127\",\"static/chunks/5127-992e23ed3de7cebd.js\",\"1024\",\"static/chunks/1024-dbdc1a5342f39565.js\",\"5017\",\"static/chunks/5017-002ce02130c2797b.js\",\"5075\",\"static/chunks/5075-0209dcc113df6db7.js\",\"3975\",\"static/chunks/3975-4933ca7c8920fc7c.js\",\"9687\",\"static/chunks/9687-75b29102063a7f56.js\",\"5137\",\"static/chunks/5137-bf1f6221994b8080.js\",\"8912\",\"static/chunks/8912-a9146b139ffbbfb0.js\",\"4811\",\"static/chunks/4811-3d8615b6bd6a9"
+        ])
+    </script>
+    <script nonce="">
+        self.__next_f.push([1,
+            "84d.js\",\"5831\",\"static/chunks/5831-515fee24b5210e84.js\",\"9421\",\"static/chunks/9421-5a6abb8635262bc4.js\",\"6606\",\"static/chunks/6606-74e5ca408e00724d.js\",\"8200\",\"static/chunks/8200-ba7038c29b79c3ec.js\",\"7005\",\"static/chunks/7005-2c97221532f6b4c9.js\",\"7933\",\"static/chunks/app/(main)/(home)/layout-7a33cdace1e85dff.js\"],\"default\",1]\nc:I[65982,[\"3346\",\"static/chunks/93923311-58fd0a6644d29e2c.js\",\"8282\",\"static/chunks/8282-815445aff6e3a57f.js\",\"4287\",\"static/chunks/4287-212baddf6d0d7703.js\",\"227\",\"static/chunks/227-e43d47911332b222.js\",\"9\",\"static/chunks/9-bbcd19b84a9b4955.js\",\"6086\",\"static/chunks/6086-bc891b0d2d5e7c09.js\",\"7364\",\"static/chunks/7364-d88a2a5e330527bf.js\",\"5127\",\"static/chunks/5127-992e23ed3de7cebd.js\",\"1024\",\"static/chunks/1024-dbdc1a5342f39565.js\",\"5017\",\"static/chunks/5017-002ce02130c2797b.js\",\"5075\",\"static/chunks/5075-0209dcc113df6db7.js\",\"3975\",\"static/chunks/3975-4933ca7c8920fc7c.js\",\"9687\",\"static/chunks/9687-75b29102063a7f56.js\",\"5137\",\"static/chunks/5137-bf1f6221994b8080.js\",\"7146\",\"static/chunks/7146-17e4d3e2c8f9bab9.js\",\"8912\",\"static/chunks/8912-a9146b139ffbbfb0.js\",\"4811\",\"static/chunks/4811-3d8615b6bd6a984d.js\",\"5831\",\"static/chunks/5831-515fee24b5210e84.js\",\"9421\",\"static/chunks/9421-5a6abb8635262bc4.js\",\"6606\",\"static/chunks/6606-74e5ca408e00724d.js\",\"8200\",\"static/chunks/8200-ba7038c29b79c3ec.js\",\"7005\",\"static/chunks/7005-2c97221532f6b4c9.js\",\"4095\",\"static/chunks/app/(main)/layout-faa2ff772bba139b.js\"],\"default\",1]\ne:I[71550,[\"8282\",\"static/chunks/8282-815445aff6e3a57f.js\",\"4287\",\"static/chunks/4287-212baddf6d0d7703.js\",\"227\",\"static/chunks/227-e43d47911332b222.js\",\"9\",\"static/chunks/9-bbcd19b84a9b4955.js\",\"6086\",\"static/chunks/6086-bc891b0d2d5e7c09.js\",\"5017\",\"static/chunks/5017-002ce02130c2797b.js\",\"5075\",\"static/chunks/5075-0209dcc113df6db7.js\",\"3975\",\"static/chunks/3975-4933ca7c8920fc7c.js\",\"5137\",\"static/chunks/5137-bf1f6221994b8080.js\",\"8291\",\"static/chunks/8291-64bf92cd6da83d42.js\",\"8912\",\"static/chunks/8912-a9146b139ffbbfb0.js\",\"4811\",\"static/chunks/4811-3d8615b6bd6a984d.js\",\""
+        ])
+    </script>
+    <script nonce="">
+        self.__next_f.push([1,
+            "5831\",\"static/chunks/5831-515fee24b5210e84.js\",\"9421\",\"static/chunks/9421-5a6abb8635262bc4.js\",\"7005\",\"static/chunks/7005-2c97221532f6b4c9.js\",\"3185\",\"static/chunks/app/layout-6b0eb50d1a948fdf.js\"],\"\"]\nf:I[95359,[\"8282\",\"static/chunks/8282-815445aff6e3a57f.js\",\"4287\",\"static/chunks/4287-212baddf6d0d7703.js\",\"227\",\"static/chunks/227-e43d47911332b222.js\",\"9\",\"static/chunks/9-bbcd19b84a9b4955.js\",\"6086\",\"static/chunks/6086-bc891b0d2d5e7c09.js\",\"5017\",\"static/chunks/5017-002ce02130c2797b.js\",\"5075\",\"static/chunks/5075-0209dcc113df6db7.js\",\"3975\",\"static/chunks/3975-4933ca7c8920fc7c.js\",\"5137\",\"static/chunks/5137-bf1f6221994b8080.js\",\"8291\",\"static/chunks/8291-64bf92cd6da83d42.js\",\"8912\",\"static/chunks/8912-a9146b139ffbbfb0.js\",\"4811\",\"static/chunks/4811-3d8615b6bd6a984d.js\",\"5831\",\"static/chunks/5831-515fee24b5210e84.js\",\"9421\",\"static/chunks/9421-5a6abb8635262bc4.js\",\"7005\",\"static/chunks/7005-2c97221532f6b4c9.js\",\"3185\",\"static/chunks/app/layout-6b0eb50d1a948fdf.js\"],\"ErrorBoundary\"]\n10:\"$Sreact.suspense\"\n11:I[67317,[\"8282\",\"static/chunks/8282-815445aff6e3a57f.js\",\"4287\",\"static/chunks/4287-212baddf6d0d7703.js\",\"227\",\"static/chunks/227-e43d47911332b222.js\",\"9\",\"static/chunks/9-bbcd19b84a9b4955.js\",\"6086\",\"static/chunks/6086-bc891b0d2d5e7c09.js\",\"5017\",\"static/chunks/5017-002ce02130c2797b.js\",\"5075\",\"static/chunks/5075-0209dcc113df6db7.js\",\"3975\",\"static/chunks/3975-4933ca7c8920fc7c.js\",\"5137\",\"static/chunks/5137-bf1f6221994b8080.js\",\"8291\",\"static/chunks/8291-64bf92cd6da83d42.js\",\"8912\",\"static/chunks/8912-a9146b139ffbbfb0.js\",\"4811\",\"static/chunks/4811-3d8615b6bd6a984d.js\",\"5831\",\"static/chunks/5831-515fee24b5210e84.js\",\"9421\",\"static/chunks/9421-5a6abb8635262bc4.js\",\"7005\",\"static/chunks/7005-2c97221532f6b4c9.js\",\"3185\",\"static/chunks/app/layout-6b0eb50d1a948fdf.js\"],\"Providers\"]\n12:I[7206,[\"8282\",\"static/chunks/8282-815445aff6e3a57f.js\",\"4287\",\"static/chunks/4287-212baddf6d0d7703.js\",\"227\",\"static/chunks/227-e43d47911332b222.js\",\"9\",\"static/chunks/9-bbcd19b84a9b4955.js\",\"6086\",\"static/chunks/6086-bc891b0d2d5e7c0"
+        ])
+    </script>
+    <script nonce="">
+        self.__next_f.push([1,
+            "9.js\",\"5017\",\"static/chunks/5017-002ce02130c2797b.js\",\"5075\",\"static/chunks/5075-0209dcc113df6db7.js\",\"3975\",\"static/chunks/3975-4933ca7c8920fc7c.js\",\"5137\",\"static/chunks/5137-bf1f6221994b8080.js\",\"8291\",\"static/chunks/8291-64bf92cd6da83d42.js\",\"8912\",\"static/chunks/8912-a9146b139ffbbfb0.js\",\"4811\",\"static/chunks/4811-3d8615b6bd6a984d.js\",\"5831\",\"static/chunks/5831-515fee24b5210e84.js\",\"9421\",\"static/chunks/9421-5a6abb8635262bc4.js\",\"7005\",\"static/chunks/7005-2c97221532f6b4c9.js\",\"3185\",\"static/chunks/app/layout-6b0eb50d1a948fdf.js\"],\"TaskGenerationProviders\"]\n13:I[7206,[\"8282\",\"static/chunks/8282-815445aff6e3a57f.js\",\"4287\",\"static/chunks/4287-212baddf6d0d7703.js\",\"227\",\"static/chunks/227-e43d47911332b222.js\",\"9\",\"static/chunks/9-bbcd19b84a9b4955.js\",\"6086\",\"static/chunks/6086-bc891b0d2d5e7c09.js\",\"5017\",\"static/chunks/5017-002ce02130c2797b.js\",\"5075\",\"static/chunks/5075-0209dcc113df6db7.js\",\"3975\",\"static/chunks/3975-4933ca7c8920fc7c.js\",\"5137\",\"static/chunks/5137-bf1f6221994b8080.js\",\"8291\",\"static/chunks/8291-64bf92cd6da83d42.js\",\"8912\",\"static/chunks/8912-a9146b139ffbbfb0.js\",\"4811\",\"static/chunks/4811-3d8615b6bd6a984d.js\",\"5831\",\"static/chunks/5831-515fee24b5210e84.js\",\"9421\",\"static/chunks/9421-5a6abb8635262bc4.js\",\"7005\",\"static/chunks/7005-2c97221532f6b4c9.js\",\"3185\",\"static/chunks/app/layout-6b0eb50d1a948fdf.js\"],\"GLOBAL_CONFIG_LOCAL_STORAGE_KEY\"]\n14:I[7206,[\"8282\",\"static/chunks/8282-815445aff6e3a57f.js\",\"4287\",\"static/chunks/4287-212baddf6d0d7703.js\",\"227\",\"static/chunks/227-e43d47911332b222.js\",\"9\",\"static/chunks/9-bbcd19b84a9b4955.js\",\"6086\",\"static/chunks/6086-bc891b0d2d5e7c09.js\",\"5017\",\"static/chunks/5017-002ce02130c2797b.js\",\"5075\",\"static/chunks/5075-0209dcc113df6db7.js\",\"3975\",\"static/chunks/3975-4933ca7c8920fc7c.js\",\"5137\",\"static/chunks/5137-bf1f6221994b8080.js\",\"8291\",\"static/chunks/8291-64bf92cd6da83d42.js\",\"8912\",\"static/chunks/8912-a9146b139ffbbfb0.js\",\"4811\",\"static/chunks/4811-3d8615b6bd6a984d.js\",\"5831\",\"static/chunks/5831-515fee24b5210e84.js\",\"9421\",\"static/chunks/9421-5a6abb8635262"
+        ])
+    </script>
+    <script nonce="">
+        self.__next_f.push([1,
+            "bc4.js\",\"7005\",\"static/chunks/7005-2c97221532f6b4c9.js\",\"3185\",\"static/chunks/app/layout-6b0eb50d1a948fdf.js\"],\"GLOBAL_AUX_CONFIG_LOCAL_STORAGE_KEY\"]\n16:I[27510,[],\"\"]\nb:{}\nd:[]\n17:[]\n"
+        ])
+    </script>
+    <script nonce="">
+        self.__next_f.push([1,
+            "0:[\"$\",\"$L4\",null,{\"buildId\":\"6Meo6OkiGx_RtDYk50fuS\",\"assetPrefix\":\"https://sora-cdn.oaistatic.com\",\"urlParts\":[\"\",\"explore\"],\"initialTree\":[\"\",{\"children\":[\"(main)\",{\"children\":[\"(home)\",{\"children\":[\"explore\",{\"children\":[\"__PAGE__\",{}]}]}],\"modalPages\":[\"__DEFAULT__\",{}]}]},\"$undefined\",\"$undefined\",true],\"initialSeedData\":[\"\",{\"children\":[\"(main)\",{\"children\":[\"(home)\",{\"children\":[\"explore\",{\"children\":[\"__PAGE__\",{},[[\"$L5\",[\"$\",\"$L6\",null,{\"props\":{\"params\":{},\"searchParams\":{}},\"Component\":\"$7\"}],null],null],null]},[null,[\"$\",\"$L8\",null,{\"parallelRouterKey\":\"children\",\"segmentPath\":[\"children\",\"(main)\",\"children\",\"(home)\",\"children\",\"explore\",\"children\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L9\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"notFoundStyles\":\"$undefined\"}]],null]},[[null,[\"$\",\"$La\",null,{\"children\":[\"$\",\"$L8\",null,{\"parallelRouterKey\":\"children\",\"segmentPath\":[\"children\",\"(main)\",\"children\",\"(home)\",\"children\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L9\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"notFoundStyles\":\"$undefined\"}],\"params\":\"$b\"}]],null],null],\"modalPages\":[\"__DEFAULT__\",{},[[\"$undefined\",null,null],null],null]},[[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"https://sora-cdn.oaistatic.com/_next/static/css/913a2645331de760.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\"}],[\"$\",\"link\",\"1\",{\"rel\":\"stylesheet\",\"href\":\"https://sora-cdn.oaistatic.com/_next/static/css/eda963f33b3839f5.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\"}],[\"$\",\"link\",\"2\",{\"rel\":\"stylesheet\",\"href\":\"https://sora-cdn.oaistatic.com/_next/static/css/0ec380495596127c.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\"}]],[\"$\",\"$Lc\",null,{\"children\":[\"$\",\"$L8\",null,{\"parallelRouterKey\":\"children\",\"segmentPath\":[\"children\",\"(main)\",\"children\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L9\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[\"$\",\"div\",null,{}],\"notFoundStyles\":[]}],\"modalPages\":[\"$\",\"$L8\",null,{\"parallelRouterKey\":\"modalPages\",\"segmentPath\":[\"children\",\"(main)\",\"modalPages\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L9\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"notFoundStyles\":\"$d\"}],\"params\":\"$b\"}]],null],null]},[[null,[\"$\",\"html\",null,{\"lang\":\"en\",\"className\":\"dark\",\"suppressHydrationWarning\":true,\"children\":[[\"$\",\"head\",null,{\"children\":[[\"$\",\"link\",null,{\"rel\":\"preconnect\",\"href\":\"https://ab.chatgpt.com\",\"crossOrigin\":\"anonymous\"}],[\"$\",\"link\",null,{\"rel\":\"preconnect\",\"href\":\"https://cdn.openai.com\",\"crossOrigin\":\"anonymous\"}],[\"$\",\"link\",null,{\"rel\":\"preconnect\",\"href\":\"https://videos.openai.com\",\"crossOrigin\":\"anonymous\"}],[\"$\",\"link\",null,{\"rel\":\"preload\",\"href\":\"https://cdn.openai.com/common/fonts/openai-sans/v2/OpenAISans-Regular.woff2\",\"as\":\"font\",\"type\":\"font/woff2\",\"crossOrigin\":\"anonymous\"}],[\"$\",\"$Le\",null,{\"id\":\"disable-react-devtools\",\"strategy\":\"beforeInteractive\",\"dangerouslySetInnerHTML\":{\"__html\":\"(function () { if (typeof window === \\\"undefined\\\") return; var hook = window.__REACT_DEVTOOLS_GLOBAL_HOOK__; if (!hook || typeof hook !== \\\"object\\\") return; hook.isDisabled = true; hook.inject = function () {}; })();\"}}],[\"$\",\"script\",null,{\"type\":\"application/ld+json\",\"dangerouslySetInnerHTML\":{\"__html\":\"{\\\"@context\\\":\\\"https://schema.org\\\",\\\"@type\\\":\\\"WebSite\\\",\\\"url\\\":\\\"https://sora.chatgpt.com/\\\",\\\"name\\\":\\\"Sora\\\",\\\"alternateName\\\":\\\"Sora by OpenAI\\\"}\"}}]]}],[\"$\",\"body\",null,{\"className\":\"min-h-screen overscroll-none bg-token-bg-primary font-sans antialiased\",\"children\":[\"$\",\"$Lf\",null,{\"noIntl\":true,\"children\":[\"$\",\"$10\",null,{\"fallback\":null,\"children\":[\"$\",\"$L11\",null,{\"children\":[\"$\",\"$Lf\",null,{\"children\":[\"$\",\"$L12\",null,{\"debugName\":\"rootTaskGenerationProviders\",\"persistConfigToLocalStorageKey\":\"$13\",\"persistAuxConfigToLocalStorageKey\":\"$14\",\"children\":[\"$\",\"$L8\",null,{\"parallelRouterKey\":\"children\",\"segmentPath\":[\"children\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L9\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"textAlign\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"center\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},\"children\":\"404\"}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"style\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be found.\"}]}]]}]}]],\"notFoundStyles\":[]}]}]}]}]}]}]}]]}]],null],null],\"couldBeIntercepted\":false,\"initialHead\":[null,\"$L15\"],\"globalErrorComponent\":\"$16\",\"missingSlots\":\"$W17\"}]\n"
+        ])
+    </script>
+    <script nonce="">
+        self.__next_f.push([1,
+            "15:[[\"$\",\"meta\",\"0\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no\"}],[\"$\",\"meta\",\"1\",{\"charSet\":\"utf-8\"}],[\"$\",\"title\",\"2\",{\"children\":\"Sora\"}],[\"$\",\"meta\",\"3\",{\"name\":\"description\",\"content\":\"Transform text and images into immersive videos. Animate stories, visualize ideas, and bring your concepts to life.\"}],[\"$\",\"link\",\"4\",{\"rel\":\"manifest\",\"href\":\"/manifest.webmanifest\",\"crossOrigin\":\"use-credentials\"}],[\"$\",\"meta\",\"5\",{\"name\":\"robots\",\"content\":\"index, follow\"}],[\"$\",\"meta\",\"6\",{\"name\":\"apple-itunes-app\",\"content\":\"app-id=6744034028, app-argument=https://sora.chatgpt.com/\"}],[\"$\",\"meta\",\"7\",{\"property\":\"og:title\",\"content\":\"Sora\"}],[\"$\",\"meta\",\"8\",{\"property\":\"og:description\",\"content\":\"Transform text and images into immersive videos. Animate stories, visualize ideas, and bring your concepts to life.\"}],[\"$\",\"meta\",\"9\",{\"property\":\"og:url\",\"content\":\"https://sora.com/explore\"}],[\"$\",\"meta\",\"10\",{\"property\":\"og:site_name\",\"content\":\"Sora\"}],[\"$\",\"meta\",\"11\",{\"property\":\"og:image\",\"content\":\"https://cdn.openai.com/sora/images/og-image.jpg\"}],[\"$\",\"meta\",\"12\",{\"property\":\"og:image:width\",\"content\":\"1200\"}],[\"$\",\"meta\",\"13\",{\"property\":\"og:image:height\",\"content\":\"630\"}],[\"$\",\"meta\",\"14\",{\"name\":\"twitter:card\",\"content\":\"summary_large_image\"}],[\"$\",\"meta\",\"15\",{\"name\":\"twitter:title\",\"content\":\"Sora\"}],[\"$\",\"meta\",\"16\",{\"name\":\"twitter:description\",\"content\":\"Transform text and images into immersive videos. Animate stories, visualize ideas, and bring your concepts to life.\"}],[\"$\",\"meta\",\"17\",{\"name\":\"twitter:image\",\"content\":\"https://cdn.openai.com/sora/images/og-image.jpg\"}],[\"$\",\"meta\",\"18\",{\"name\":\"twitter:image:width\",\"content\":\"1200\"}],[\"$\",\"meta\",\"19\",{\"name\":\"twitter:image:height\",\"content\":\"630\"}],[\"$\",\"link\",\"20\",{\"rel\":\"icon\",\"href\":\"https://cdn.openai.com/sora/assets/favicon-nf2.ico\",\"type\":\"image/x-icon\"}],[\"$\",\"link\",\"21\",{\"rel\":\"apple-touch-icon\",\"href\":\"https://cdn.openai.com/sora/assets/apple-touch-icon-nf2.png\",\"sizes\":\"180x180\"}]]\n5:null\n"
+        ])
+    </script>
+    <script defer=""
+        src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015"
+        integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" nonce=""
+        data-cf-beacon="{&quot;rayId&quot;:&quot;9bb683654d1cb9c5&quot;,&quot;serverTiming&quot;:{&quot;name&quot;:{&quot;cfExtPri&quot;:true,&quot;cfEdge&quot;:true,&quot;cfOrigin&quot;:true,&quot;cfL4&quot;:true,&quot;cfSpeedBrain&quot;:true,&quot;cfCacheStatus&quot;:true}},&quot;version&quot;:&quot;2025.9.1&quot;,&quot;token&quot;:&quot;13cebdc4fe01453892d6a9546300752d&quot;}"
+        crossorigin="anonymous"></script>
+    <next-route-announcer style="position: absolute;"></next-route-announcer><iframe
+        src="https://chatgpt.com/backend-api/sentinel/frame.html" style="display: none;"></iframe>
+    <script>
+        ! function() {
+            try {
+                var d = document.documentElement,
+                    c = d.classList;
+                c.remove('light', 'dark');
+                var e = localStorage.getItem('theme');
+                if (e) {
+                    c.add(e || '')
+                } else {
+                    c.add('dark');
+                }
+                if (e === 'light' || e === 'dark' || !e) d.style.colorScheme = e || 'dark'
+            } catch (t) {}
+        }();
+    </script>
+    <main class="relative flex max-h-screen min-h-screen flex-col items-center justify-between">
+        <div class="h-full max-h-screen min-h-screen w-full">
+            <div class="h-full max-h-screen min-h-screen w-full">
+                <div class="min-h-screen w-full"
+                    style="transform-origin: 50vw 50vh; will-change: auto; opacity: 1; transform: none;">
+                    <div class="relative flex min-h-screen">
+                        <div class="sticky box-content w-[--sidebar-width] flex-shrink-0 overflow-y-auto px-[--sidebar-gap] max-tablet:hidden"
+                            style="top: 60px; height: calc(-60px + 100vh);">
+                            <div class="flex flex-col gap-6">
+                                <div class="-mx-3"><button
+                                        class="inline-flex items-center justify-center whitespace-nowrap text-sm focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative shadow-inset-stroke text-token-text-primary hover:bg-token-bg-active data-[state=open]:bg-token-bg-active hover:shadow-none data-[state=open]:shadow-none px-3 py-2 h-9 rounded-full gap-2 font-medium"><svg
+                                            xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                            fill="none" viewBox="0 0 24 24" class="h-[18px] w-[18px]">
+                                            <path fill="currentColor" fill-rule="evenodd"
+                                                d="M11.327 4.609a6.25 6.25 0 1 0-.654 12.483 6.25 6.25 0 0 0 .654-12.483m-8.565 5.81a8.25 8.25 0 1 1 14.461 5.848l3.983 4.424a1 1 0 0 1-1.486 1.338l-3.983-4.424a8.25 8.25 0 0 1-12.975-7.187"
+                                                clip-rule="evenodd"></path>
+                                        </svg>Search<div class="ml-1 text-token-text-secondary"><span
+                                                class="whitespace-nowrap"><span>Ctrl</span><span
+                                                    class="inline-block w-0.5"></span><span>K</span></span></div>
+                                        </button></div>
+                                <div class="flex flex-col items-start"><a
+                                        class="flex items-center gap-2 rounded-full -mx-3 pl-3 pr-4 py-1.5 font-medium text-token-text-primary active:text-token-text-secondary cursor-pointer max-w-full bg-token-bg-active"
+                                        href="/explore">
+                                        <div class="flex flex-grow items-center gap-2 overflow-hidden">
+                                            <div class="shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width="28"
+                                                    height="28" fill="none" viewBox="0 0 28 28"
+                                                    class="h-[18px] w-[18px]">
+                                                    <path fill="currentColor"
+                                                        d="M11.778 17.507V12.66a.903.903 0 0 1 1.391-.764l3.75 2.423a.91.91 0 0 1 0 1.528l-3.75 2.424a.903.903 0 0 1-1.391-.764">
+                                                    </path>
+                                                    <path stroke="currentColor" stroke-width="2.33"
+                                                        d="M24 15.676v-1.992c0-1.683 0-2.526-.239-3.285a5.2 5.2 0 0 0-1.016-1.827c-.519-.603-1.234-1.047-2.665-1.936l-1.704-1.058c-1.588-.986-2.382-1.479-3.233-1.671a5.2 5.2 0 0 0-2.286 0c-.851.192-1.645.685-3.233 1.671L7.92 6.636c-1.43.889-2.146 1.333-2.665 1.936a5.2 5.2 0 0 0-1.016 1.827C4 11.16 4 12.001 4 13.685v1.991c0 2.904 0 4.356.565 5.465a5.2 5.2 0 0 0 2.266 2.266c1.11.565 2.561.565 5.465.565h3.408c2.904 0 4.356 0 5.465-.565a5.2 5.2 0 0 0 2.266-2.266C24 20.031 24 18.58 24 15.676Z">
+                                                    </path>
+                                                </svg></div>
+                                            <div class="flex-grow truncate">Explore</div>
+                                        </div>
+                                    </a><a
+                                        class="flex items-center gap-2 rounded-full -mx-3 pl-3 pr-4 py-1.5 font-medium text-token-text-primary active:text-token-text-secondary cursor-pointer max-w-full"
+                                        href="/explore/images">
+                                        <div class="flex flex-grow items-center gap-2 overflow-hidden">
+                                            <div class="shrink-0"><svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                    viewBox="0 0 24 24" class="h-[18px] w-[18px]">
+                                                    <path fill="currentColor"
+                                                        d="M8.759 3h6.482c.805 0 1.47 0 2.01.044.563.046 1.08.145 1.565.392a4 4 0 0 1 1.748 1.748c.247.485.346 1.002.392 1.564C21 7.29 21 7.954 21 8.758v6.483c0 .805 0 1.47-.044 2.01-.046.563-.145 1.08-.392 1.565a4 4 0 0 1-1.748 1.748c-.485.247-1.002.346-1.564.392-.541.044-1.206.044-2.01.044H8.758c-.805 0-1.47 0-2.01-.044-.563-.046-1.08-.145-1.565-.392a4 4 0 0 1-1.748-1.748c-.247-.485-.346-1.002-.392-1.564C3 16.71 3 16.046 3 15.242V8.758c0-.805 0-1.47.044-2.01.046-.563.145-1.08.392-1.565a4 4 0 0 1 1.748-1.748c.485-.247 1.002-.346 1.564-.392C7.29 3 7.954 3 8.758 3M6.91 5.038c-.438.035-.663.1-.819.18a2 2 0 0 0-.874.874c-.08.156-.145.38-.18.819C5 7.361 5 7.943 5 8.8v4.786l.879-.879a3 3 0 0 1 4.242 0l6.286 6.286c.261-.005.484-.014.682-.03.438-.036.663-.101.819-.181a2 2 0 0 0 .874-.874c.08-.156.145-.38.18-.819.037-.45.038-1.032.038-1.889V8.8c0-.857 0-1.439-.038-1.889-.035-.438-.1-.663-.18-.819a2 2 0 0 0-.874-.874c-.156-.08-.38-.145-.819-.18C16.639 5 16.057 5 15.2 5H8.8c-.857 0-1.439 0-1.889.038M13.586 19l-4.879-4.879a1 1 0 0 0-1.414 0l-2.286 2.286c.005.261.014.484.03.682.036.438.101.663.181.819a2 2 0 0 0 .874.874c.156.08.38.145.819.18C7.361 19 7.943 19 8.8 19zM14.5 8.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2m-3 1a3 3 0 1 1 6 0 3 3 0 0 1-6 0">
+                                                    </path>
+                                                </svg></div>
+                                            <div class="flex-grow truncate">Images</div>
+                                        </div>
+                                    </a><a
+                                        class="flex items-center gap-2 rounded-full -mx-3 pl-3 pr-4 py-1.5 font-medium text-token-text-primary active:text-token-text-secondary cursor-pointer max-w-full"
+                                        href="/explore/videos">
+                                        <div class="flex flex-grow items-center gap-2 overflow-hidden">
+                                            <div class="shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width="24"
+                                                    height="24" fill="none" viewBox="0 0 24 24"
+                                                    class="h-[18px] w-[18px]">
+                                                    <path fill="currentColor"
+                                                        d="M16.679 4.371a1 1 0 0 0-1.857-.742zM12.822 8.63a1 1 0 0 0 1.857.742zM11.179 4.37a1 1 0 0 0-1.857-.742zM7.321 8.63a1 1 0 0 0 1.856.742zM6.184 19.564l.454-.891zm-1.748-1.748.891-.454zm15.128 0-.891-.454zm-1.748 1.748-.454-.891zm0-15.128-.454.891zm1.748 1.748-.891.454zM6.184 4.436l.454.891zM4.436 6.184l.891.454zM20 8H4v2h16zm-5.178-4.371-2 5 1.857.742 2-5zm-5.5 0-2 5 1.856.742 2-5zM10.4 5h3.2V3h-3.2zm8.6 5.4v3.2h2v-3.2zM13.6 19h-3.2v2h3.2zM5 13.6v-3.2H3v3.2zm5.4 5.4c-1.137 0-1.929 0-2.546-.051-.605-.05-.953-.142-1.216-.276l-.908 1.782c.592.302 1.233.428 1.961.487.718.059 1.605.058 2.709.058zM3 13.6c0 1.104 0 1.991.058 2.709.06.729.185 1.369.487 1.961l1.782-.908c-.134-.263-.226-.611-.276-1.216C5.001 15.529 5 14.736 5 13.6zm3.638 5.073a3 3 0 0 1-1.311-1.311l-1.782.908a5 5 0 0 0 2.185 2.185zM19 13.6c0 1.137 0 1.929-.051 2.546-.05.605-.142.953-.276 1.216l1.782.908c.302-.592.428-1.232.487-1.961.059-.718.058-1.605.058-2.709zM13.6 21c1.104 0 1.991 0 2.709-.058.729-.06 1.369-.185 1.961-.487l-.908-1.782c-.263.134-.611.226-1.216.276-.617.05-1.41.051-2.546.051zm5.073-3.638a3 3 0 0 1-1.311 1.311l.908 1.782a5 5 0 0 0 2.185-2.185zM13.6 5c1.137 0 1.929 0 2.546.051.605.05.953.142 1.216.276l.908-1.782c-.592-.302-1.232-.428-1.961-.487C15.59 2.999 14.704 3 13.6 3zm7.4 5.4c0-1.104 0-1.991-.058-2.709-.06-.728-.185-1.369-.487-1.96l-1.782.907c.134.263.226.611.276 1.216.05.617.051 1.41.051 2.546zm-3.638-5.073a3 3 0 0 1 1.311 1.311l1.782-.908a5 5 0 0 0-2.185-2.185zM10.4 3c-1.104 0-1.991 0-2.709.058-.728.06-1.369.185-1.96.487l.907 1.782c.263-.134.611-.226 1.216-.276C8.471 5.001 9.264 5 10.4 5zM5 10.4c0-1.137 0-1.929.051-2.546.05-.605.142-.953.276-1.216L3.545 5.73c-.302.592-.428 1.233-.487 1.961C2.999 8.41 3 9.296 3 10.4zm.73-6.855A5 5 0 0 0 3.545 5.73l1.782.908a3 3 0 0 1 1.311-1.311z">
+                                                    </path>
+                                                </svg></div>
+                                            <div class="flex-grow truncate">Videos</div>
+                                        </div>
+                                    </a><a
+                                        class="flex items-center gap-2 rounded-full -mx-3 pl-3 pr-4 py-1.5 font-medium text-token-text-primary active:text-token-text-secondary cursor-pointer max-w-full"
+                                        href="/explore/likes">
+                                        <div class="flex flex-grow items-center gap-2 overflow-hidden">
+                                            <div class="shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width="24"
+                                                    height="24" fill="none" viewBox="0 0 24 24"
+                                                    class="h-[18px] w-[18px]">
+                                                    <path stroke="currentColor" stroke-linejoin="round" stroke-width="2"
+                                                        d="M12 5.822c6.504-6.44 17.654 5.52 0 15.178C-5.654 11.342 5.496-.618 12 5.822Z">
+                                                    </path>
+                                                </svg></div>
+                                            <div class="flex-grow truncate">Likes</div>
+                                        </div>
+                                    </a></div>
+                                <div class="flex flex-col gap-3">
+                                    <div class="flex flex-col items-start">
+                                        <div class="py-2 font-bold text-token-text-secondary">Library</div><a
+                                            class="flex items-center gap-2 rounded-full -mx-3 pl-3 pr-4 py-1.5 font-medium text-token-text-primary active:text-token-text-secondary cursor-pointer max-w-full"
+                                            href="/library">
+                                            <div class="flex flex-grow items-center gap-2 overflow-hidden">
+                                                <div class="shrink-0"><svg xmlns="http://www.w3.org/2000/svg"
+                                                        width="18" height="18" fill="none" viewBox="0 0 18 18"
+                                                        class="h-[18px] w-[18px]">
+                                                        <path stroke="currentColor" stroke-width="1.5"
+                                                            d="M1.654 10.323c-.154-1.25-.23-1.876-.046-2.384a2.25 2.25 0 0 1 .856-1.095c.448-.302 1.073-.38 2.324-.533l2.531-.31c1.25-.154 1.876-.23 2.384-.046.446.162.83.462 1.096.856.302.448.379 1.073.532 2.324l.31 2.53c.154 1.252.231 1.877.046 2.385a2.25 2.25 0 0 1-.856 1.095c-.448.302-1.073.38-2.324.533l-2.53.31c-1.251.154-1.877.23-2.384.046a2.25 2.25 0 0 1-1.096-.856c-.302-.448-.379-1.073-.533-2.324z">
+                                                        </path>
+                                                        <path stroke="currentColor" stroke-linecap="round"
+                                                            stroke-width="1.5"
+                                                            d="M14.25 12.102q.065-.017.126-.04a2.25 2.25 0 0 0 1.095-.856c.302-.448.38-1.073.533-2.324l.31-2.53c.154-1.251.23-1.877.046-2.384a2.25 2.25 0 0 0-.856-1.096c-.448-.302-1.073-.379-2.324-.533l-2.531-.31c-1.25-.154-1.876-.23-2.384-.046a2.25 2.25 0 0 0-1.095.856c-.103.152-.18.325-.242.536">
+                                                        </path>
+                                                        <path fill="currentColor"
+                                                            d="m5.371 12.718-.418-2.973a.563.563 0 0 1 .793-.589l2.52 1.162c.373.171.443.67.132.937l-2.103 1.811a.562.562 0 0 1-.924-.348">
+                                                        </path>
+                                                    </svg></div>
+                                                <div class="flex-grow truncate">My media</div>
+                                            </div>
+                                        </a><a
+                                            class="flex items-center gap-2 rounded-full -mx-3 pl-3 pr-4 py-1.5 font-medium text-token-text-primary active:text-token-text-secondary cursor-pointer max-w-full"
+                                            href="/library/favorites">
+                                            <div class="flex flex-grow items-center gap-2 overflow-hidden">
+                                                <div class="shrink-0"><svg xmlns="http://www.w3.org/2000/svg"
+                                                        width="24" height="24" fill="none"
+                                                        viewBox="0 0 24 24" class="h-[18px] w-[18px]">
+                                                        <path fill="currentColor" fill-rule="evenodd"
+                                                            d="M9.822 2.077c.957-1.696 3.4-1.696 4.356 0l2.086 3.7a.5.5 0 0 0 .337.245l4.163.84c1.91.386 2.664 2.71 1.346 4.143l-2.875 3.127a.5.5 0 0 0-.128.396l.488 4.22c.223 1.934-1.753 3.37-3.524 2.56l-3.863-1.768a.5.5 0 0 0-.416 0L7.93 21.308c-1.771.81-3.748-.626-3.524-2.56l.488-4.22a.5.5 0 0 0-.129-.396L1.89 11.005C.572 9.571 1.327 7.248 3.236 6.862l4.164-.84a.5.5 0 0 0 .337-.244zm2.614.982a.5.5 0 0 0-.871 0l-2.086 3.7a2.5 2.5 0 0 1-1.683 1.224l-4.164.84a.5.5 0 0 0-.27.829l2.875 3.127a2.5 2.5 0 0 1 .643 1.979l-.487 4.22a.5.5 0 0 0 .704.511l3.863-1.768a2.5 2.5 0 0 1 2.08 0l3.863 1.768a.5.5 0 0 0 .705-.512l-.488-4.22a2.5 2.5 0 0 1 .643-1.978l2.875-3.127a.5.5 0 0 0-.27-.829l-4.163-.84a2.5 2.5 0 0 1-1.683-1.223z"
+                                                            clip-rule="evenodd"></path>
+                                                    </svg></div>
+                                                <div class="flex-grow truncate">Favorites</div>
+                                            </div>
+                                        </a><a
+                                            class="flex items-center gap-2 rounded-full -mx-3 pl-3 pr-4 py-1.5 font-medium text-token-text-primary active:text-token-text-secondary cursor-pointer max-w-full"
+                                            href="/library/uploads">
+                                            <div class="flex flex-grow items-center gap-2 overflow-hidden">
+                                                <div class="shrink-0"><svg xmlns="http://www.w3.org/2000/svg"
+                                                        width="18" height="18" fill="none"
+                                                        viewBox="0 0 18 18" class="h-[18px] w-[18px]">
+                                                        <path stroke="currentColor" stroke-linecap="round"
+                                                            stroke-linejoin="round" stroke-width="1.5"
+                                                            d="M9 6.25v5.5"></path>
+                                                        <path stroke="currentColor" stroke-linecap="round"
+                                                            stroke-width="1.5" d="M6.25 9h5.5"></path>
+                                                        <rect width="13.3" height="13.3" x="2.35" y="2.35"
+                                                            stroke="currentColor" stroke-width="1.5" rx="6.65">
+                                                        </rect>
+                                                    </svg></div>
+                                                <div class="flex-grow truncate">Uploads</div>
+                                            </div>
+                                        </a><a
+                                            class="flex items-center gap-2 rounded-full -mx-3 pl-3 pr-4 py-1.5 font-medium text-token-text-primary active:text-token-text-secondary cursor-pointer max-w-full"
+                                            href="/library/trash">
+                                            <div class="flex flex-grow items-center gap-2 overflow-hidden">
+                                                <div class="shrink-0"><svg xmlns="http://www.w3.org/2000/svg"
+                                                        fill="none" viewBox="0 0 24 24" class="h-[18px] w-[18px]">
+                                                        <path fill="currentColor" fill-rule="evenodd"
+                                                            d="M10.556 4a1 1 0 0 0-.97.751l-.292 1.14h5.421l-.293-1.14A1 1 0 0 0 13.453 4zm6.224 1.892-.421-1.639A3 3 0 0 0 13.453 2h-2.897A3 3 0 0 0 7.65 4.253l-.421 1.639H4a1 1 0 1 0 0 2h.1l1.215 11.425A3 3 0 0 0 8.3 22H15.7a3 3 0 0 0 2.984-2.683l1.214-11.425H20a1 1 0 1 0 0-2zm1.108 2H6.112l1.192 11.214A1 1 0 0 0 8.3 20H15.7a1 1 0 0 0 .995-.894zM10 10a1 1 0 0 1 1 1v5a1 1 0 1 1-2 0v-5a1 1 0 0 1 1-1m4 0a1 1 0 0 1 1 1v5a1 1 0 1 1-2 0v-5a1 1 0 0 1 1-1"
+                                                            clip-rule="evenodd"></path>
+                                                    </svg></div>
+                                                <div class="flex-grow truncate">Trash</div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                    <div class="flex flex-col items-start"><button
+                                            class="flex items-center gap-2 rounded-full -mx-3 pl-3 pr-4 py-1.5 font-medium text-token-text-primary active:text-token-text-secondary cursor-pointer max-w-full">
+                                            <div class="flex flex-grow items-center gap-2 overflow-hidden">
+                                                <div class="shrink-0"><svg xmlns="http://www.w3.org/2000/svg"
+                                                        width="18" height="18" fill="none"
+                                                        viewBox="0 0 18 18" class="h-[18px] w-[18px]">
+                                                        <path stroke="currentColor" stroke-linecap="round"
+                                                            stroke-width="1.5"
+                                                            d="M9.5 14.505H5.85c-1.26 0-1.89 0-2.371-.245a2.25 2.25 0 0 1-.984-.983c-.245-.482-.245-1.112-.245-2.372V8.15m0 0V6.73c0-1.26 0-1.89.245-2.371a2.25 2.25 0 0 1 .984-.984c.48-.245 1.11-.245 2.371-.245h.59c.126 0 .189 0 .25.003.512.028.999.23 1.38.572.046.04.09.086.18.175v0c.09.09.134.134.18.175a2.25 2.25 0 0 0 1.38.572c.061.003.124.003.25.003h3.253c.174 0 .26 0 .334.005a2.25 2.25 0 0 1 2.098 2.098c.005.074.005.16.005.334v0c0 .077 0 .116-.002.148a1 1 0 0 1-.933.933c-.032.002-.07.002-.148.002zM12.5 13.5H17m-2.25-2.25v4.5">
+                                                        </path>
+                                                    </svg></div>
+                                                <div class="flex-grow truncate text-left">New folder</div>
+                                            </div>
+                                        </button></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div
+                                class="flex min-h-[80vh] justify-center pb-[var(--mobile-tab-bar-height)] tablet:pb-40 tablet:pr-1">
+                                <div class="flex max-w-[1920px] grow flex-col">
+                                    <div class="box-content flex h-[calc(var(--nav-height)-16px)] items-center justify-between px-mobile-x pt-[var(--nav-padding-top)] tablet:h-[var(--nav-height)] tablet:px-0"
+                                        style="padding-bottom: 4px; --nav-height: 52px; --nav-padding-top: 4px;">
+                                        <div class="flex items-center gap-4">
+                                            <h2
+                                                class="text-lg font-semibold leading-[21px] nf2:text-3xl nf2:leading-9">
+                                                <div class="flex gap-3">Explore</div>
+                                            </h2>
+                                        </div>
+                                    </div>
+                                    <div class="relative flex w-full flex-col gap-2">
+                                        <div class="w-full">
+                                            <div style="height: 19137.3px; width: 100%; position: relative;">
+                                                <div data-index="0"
+                                                    style="position: absolute; top: 0px; left: 0px; width: 742px; height: 1113px; transform: translate(0px, 0px);">
+                                                    <div class="h-full w-full">
+                                                        <div class="group relative h-full w-full"><a
+                                                                href="/g/gen_01kej33v57f1a85haxd7hz32h3"><img
+                                                                    src="https://videos.openai.com/az/vg-assets/task_01kej33srbfb88ejvhrqvd5t00%2F1767986329_img_0.webp?se=2026-01-13T00%3A00%3A00Z&amp;sp=r&amp;sv=2024-08-04&amp;sr=b&amp;skoid=aa5ddad1-c91a-4f0a-9aca-e20682cc8969&amp;sktid=a48cca56-e6da-484e-a814-9c849652bcb3&amp;skt=2026-01-09T01%3A32%3A20Z&amp;ske=2026-01-16T01%3A37%3A20Z&amp;sks=b&amp;skv=2024-08-04&amp;sig=Xweq2RzAHmY02dor5seUOjB2CYFgbnYTFk6C74xqGg0%3D&amp;ac=oaivgprodscus2"
+                                                                    width="1024" height="1536"
+                                                                    class="h-full w-full" alt="Generated image"></a>
+                                                            <div
+                                                                class="pointer-events-none absolute bottom-0 z-20 flex h-20 w-full items-end bg-gradient-to-t from-black/50 to-transparent pb-1 pr-1.5">
+                                                                <div
+                                                                    class="flex w-full items-center justify-between overflow-hidden">
+                                                                    <div
+                                                                        class="shrink overflow-hidden pl-1 pr-2 font-semibold text-white">
+                                                                        <button
+                                                                            class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto w-full overflow-hidden px-3 py-1.5 text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><span
+                                                                                class="truncate font-semibold">atacani</span></button>
+                                                                    </div>
+                                                                    <div class="flex shrink-0 gap-0.5">
+                                                                        <div data-state="closed"><button
+                                                                                class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto p-[7px] text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    width="19" height="18"
+                                                                                    fill="none" viewBox="0 0 19 18"
+                                                                                    class="h-[18px] w-[18px]">
+                                                                                    <circle cx="9"
+                                                                                        cy="9" r="6.75"
+                                                                                        stroke="currentColor"
+                                                                                        stroke-width="2"></circle>
+                                                                                    <path stroke="currentColor"
+                                                                                        stroke-linecap="round"
+                                                                                        stroke-width="2"
+                                                                                        d="M11.25 9a4.5 4.5 0 0 0-9 0M15.75 9a4.5 4.5 0 1 1-9 0">
+                                                                                    </path>
+                                                                                </svg></button></div>
+                                                                        <div data-state="closed"><button
+                                                                                class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto p-[7px] text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    fill="none" viewBox="0 0 18 18"
+                                                                                    class="h-[18px] w-[18px]">
+                                                                                    <path stroke="currentColor"
+                                                                                        stroke-linecap="round"
+                                                                                        stroke-linejoin="round"
+                                                                                        stroke-width="2"
+                                                                                        d="m15.5 15.5-3-3M13.5 7.9a5.58 5.58 0 0 1-1.64 3.96A5.6 5.6 0 1 1 13.5 7.9">
+                                                                                    </path>
+                                                                                </svg><span class="sr-only">Search for
+                                                                                    similar images</span></button></div>
+                                                                        <div data-state="closed"><button
+                                                                                class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto p-[7px] text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    width="18" height="18"
+                                                                                    fill="none" viewBox="0 0 18 18"
+                                                                                    class="h-[18px] w-[18px]">
+                                                                                    <path stroke="currentColor"
+                                                                                        stroke-linejoin="round"
+                                                                                        stroke-width="2"
+                                                                                        d="M9 3.991c4.878-4.83 13.24 4.14 0 11.384C-4.24 8.131 4.122-.838 9 3.991Z">
+                                                                                    </path>
+                                                                                </svg><span
+                                                                                    class="truncate font-semibold">5</span></button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div data-index="1"
+                                                    style="position: absolute; top: 0px; left: 0px; width: 742px; height: 742px; transform: translate(0px, 1117px);">
+                                                    <div class="h-full w-full">
+                                                        <div class="group relative h-full w-full"><a
+                                                                href="/g/gen_01kej4c0afe5ea5qy1j0qsbmh4"><img
+                                                                    src="https://videos.openai.com/az/vg-assets/task_01kej4bykzfveb3594b918kamm%2F1767987635_img_0.webp?se=2026-01-13T00%3A00%3A00Z&amp;sp=r&amp;sv=2024-08-04&amp;sr=b&amp;skoid=aa5ddad1-c91a-4f0a-9aca-e20682cc8969&amp;sktid=a48cca56-e6da-484e-a814-9c849652bcb3&amp;skt=2026-01-09T01%3A32%3A20Z&amp;ske=2026-01-16T01%3A37%3A20Z&amp;sks=b&amp;skv=2024-08-04&amp;sig=wBZ8OthGn%2BixGybXvvxjVyAyHqbwQmBmxmj4j7Qtrdg%3D&amp;ac=oaivgprodscus2"
+                                                                    width="1024" height="1024"
+                                                                    class="h-full w-full" alt="Generated image"></a>
+                                                            <div
+                                                                class="pointer-events-none absolute bottom-0 z-20 flex h-20 w-full items-end bg-gradient-to-t from-black/50 to-transparent pb-1 pr-1.5">
+                                                                <div
+                                                                    class="flex w-full items-center justify-between overflow-hidden">
+                                                                    <div
+                                                                        class="shrink overflow-hidden pl-1 pr-2 font-semibold text-white">
+                                                                        <button
+                                                                            class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto w-full overflow-hidden px-3 py-1.5 text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><span
+                                                                                class="truncate font-semibold">linkeraa</span></button>
+                                                                    </div>
+                                                                    <div class="flex shrink-0 gap-0.5">
+                                                                        <div data-state="closed"><button
+                                                                                class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto p-[7px] text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    width="19" height="18"
+                                                                                    fill="none" viewBox="0 0 19 18"
+                                                                                    class="h-[18px] w-[18px]">
+                                                                                    <circle cx="9"
+                                                                                        cy="9" r="6.75"
+                                                                                        stroke="currentColor"
+                                                                                        stroke-width="2"></circle>
+                                                                                    <path stroke="currentColor"
+                                                                                        stroke-linecap="round"
+                                                                                        stroke-width="2"
+                                                                                        d="M11.25 9a4.5 4.5 0 0 0-9 0M15.75 9a4.5 4.5 0 1 1-9 0">
+                                                                                    </path>
+                                                                                </svg></button></div>
+                                                                        <div data-state="closed"><button
+                                                                                class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto p-[7px] text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    fill="none" viewBox="0 0 18 18"
+                                                                                    class="h-[18px] w-[18px]">
+                                                                                    <path stroke="currentColor"
+                                                                                        stroke-linecap="round"
+                                                                                        stroke-linejoin="round"
+                                                                                        stroke-width="2"
+                                                                                        d="m15.5 15.5-3-3M13.5 7.9a5.58 5.58 0 0 1-1.64 3.96A5.6 5.6 0 1 1 13.5 7.9">
+                                                                                    </path>
+                                                                                </svg><span class="sr-only">Search for
+                                                                                    similar images</span></button></div>
+                                                                        <div data-state="closed"><button
+                                                                                class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto p-[7px] text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    width="18" height="18"
+                                                                                    fill="none" viewBox="0 0 18 18"
+                                                                                    class="h-[18px] w-[18px]">
+                                                                                    <path stroke="currentColor"
+                                                                                        stroke-linejoin="round"
+                                                                                        stroke-width="2"
+                                                                                        d="M9 3.991c4.878-4.83 13.24 4.14 0 11.384C-4.24 8.131 4.122-.838 9 3.991Z">
+                                                                                    </path>
+                                                                                </svg></button></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div data-index="2"
+                                                    style="position: absolute; top: 0px; left: 0px; width: 742px; height: 495px; transform: translate(0px, 1863px);">
+                                                    <div class="h-full w-full">
+                                                        <div class="group relative h-full w-full"><a
+                                                                href="/g/gen_01kej21jhde6a8nw95nxxywcqc"><img
+                                                                    src="https://videos.openai.com/az/vg-assets/task_01kej21h0ve92802tseyn2az2n%2F1767985208_img_0.webp?se=2026-01-13T00%3A00%3A00Z&amp;sp=r&amp;sv=2024-08-04&amp;sr=b&amp;skoid=aa5ddad1-c91a-4f0a-9aca-e20682cc8969&amp;sktid=a48cca56-e6da-484e-a814-9c849652bcb3&amp;skt=2026-01-09T01%3A32%3A20Z&amp;ske=2026-01-16T01%3A37%3A20Z&amp;sks=b&amp;skv=2024-08-04&amp;sig=L3J%2B2zIyPuaFlhWcIEk79DJtOmFi93oGcZQjL5RTc98%3D&amp;ac=oaivgprodscus2"
+                                                                    width="1536" height="1024"
+                                                                    class="h-full w-full" alt="Generated image"></a>
+                                                            <div
+                                                                class="pointer-events-none absolute bottom-0 z-20 flex h-20 w-full items-end bg-gradient-to-t from-black/50 to-transparent pb-1 pr-1.5">
+                                                                <div
+                                                                    class="flex w-full items-center justify-between overflow-hidden">
+                                                                    <div
+                                                                        class="shrink overflow-hidden pl-1 pr-2 font-semibold text-white">
+                                                                        <button
+                                                                            class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto w-full overflow-hidden px-3 py-1.5 text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><span
+                                                                                class="truncate font-semibold">dt09</span></button>
+                                                                    </div>
+                                                                    <div class="flex shrink-0 gap-0.5">
+                                                                        <div data-state="closed"><button
+                                                                                class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto p-[7px] text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    width="19" height="18"
+                                                                                    fill="none" viewBox="0 0 19 18"
+                                                                                    class="h-[18px] w-[18px]">
+                                                                                    <circle cx="9"
+                                                                                        cy="9" r="6.75"
+                                                                                        stroke="currentColor"
+                                                                                        stroke-width="2"></circle>
+                                                                                    <path stroke="currentColor"
+                                                                                        stroke-linecap="round"
+                                                                                        stroke-width="2"
+                                                                                        d="M11.25 9a4.5 4.5 0 0 0-9 0M15.75 9a4.5 4.5 0 1 1-9 0">
+                                                                                    </path>
+                                                                                </svg></button></div>
+                                                                        <div data-state="closed"><button
+                                                                                class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto p-[7px] text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    fill="none" viewBox="0 0 18 18"
+                                                                                    class="h-[18px] w-[18px]">
+                                                                                    <path stroke="currentColor"
+                                                                                        stroke-linecap="round"
+                                                                                        stroke-linejoin="round"
+                                                                                        stroke-width="2"
+                                                                                        d="m15.5 15.5-3-3M13.5 7.9a5.58 5.58 0 0 1-1.64 3.96A5.6 5.6 0 1 1 13.5 7.9">
+                                                                                    </path>
+                                                                                </svg><span class="sr-only">Search for
+                                                                                    similar images</span></button></div>
+                                                                        <div data-state="closed"><button
+                                                                                class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto p-[7px] text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    width="18" height="18"
+                                                                                    fill="none" viewBox="0 0 18 18"
+                                                                                    class="h-[18px] w-[18px]">
+                                                                                    <path stroke="currentColor"
+                                                                                        stroke-linejoin="round"
+                                                                                        stroke-width="2"
+                                                                                        d="M9 3.991c4.878-4.83 13.24 4.14 0 11.384C-4.24 8.131 4.122-.838 9 3.991Z">
+                                                                                    </path>
+                                                                                </svg><span
+                                                                                    class="truncate font-semibold">1</span></button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div data-index="3"
+                                                    style="position: absolute; top: 0px; left: 0px; width: 742px; height: 742px; transform: translate(0px, 2362px);">
+                                                    <div class="h-full w-full">
+                                                        <div class="group relative h-full w-full"><a
+                                                                href="/g/gen_01kej22be8exn8t6daxbc7ye9e"><img
+                                                                    src="https://videos.openai.com/az/vg-assets/task_01kej22akbegbs860da8kbk0hm%2F1767985224_img_1.webp?se=2026-01-13T00%3A00%3A00Z&amp;sp=r&amp;sv=2024-08-04&amp;sr=b&amp;skoid=aa5ddad1-c91a-4f0a-9aca-e20682cc8969&amp;sktid=a48cca56-e6da-484e-a814-9c849652bcb3&amp;skt=2026-01-09T01%3A32%3A20Z&amp;ske=2026-01-16T01%3A37%3A20Z&amp;sks=b&amp;skv=2024-08-04&amp;sig=DffVN0JPnBH0XHLiT9%2B%2BTMtcgln%2BWrdn6/GaT%2BinJwQ%3D&amp;ac=oaivgprodscus2"
+                                                                    width="1024" height="1024"
+                                                                    class="h-full w-full" alt="Generated image"></a>
+                                                            <div
+                                                                class="pointer-events-none absolute bottom-0 z-20 flex h-20 w-full items-end bg-gradient-to-t from-black/50 to-transparent pb-1 pr-1.5">
+                                                                <div
+                                                                    class="flex w-full items-center justify-between overflow-hidden">
+                                                                    <div
+                                                                        class="shrink overflow-hidden pl-1 pr-2 font-semibold text-white">
+                                                                        <button
+                                                                            class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto w-full overflow-hidden px-3 py-1.5 text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><span
+                                                                                class="truncate font-semibold">oursoftwarevault</span></button>
+                                                                    </div>
+                                                                    <div class="flex shrink-0 gap-0.5">
+                                                                        <div data-state="closed"><button
+                                                                                class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto p-[7px] text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    width="19" height="18"
+                                                                                    fill="none" viewBox="0 0 19 18"
+                                                                                    class="h-[18px] w-[18px]">
+                                                                                    <circle cx="9"
+                                                                                        cy="9" r="6.75"
+                                                                                        stroke="currentColor"
+                                                                                        stroke-width="2"></circle>
+                                                                                    <path stroke="currentColor"
+                                                                                        stroke-linecap="round"
+                                                                                        stroke-width="2"
+                                                                                        d="M11.25 9a4.5 4.5 0 0 0-9 0M15.75 9a4.5 4.5 0 1 1-9 0">
+                                                                                    </path>
+                                                                                </svg></button></div>
+                                                                        <div data-state="closed"><button
+                                                                                class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto p-[7px] text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    fill="none" viewBox="0 0 18 18"
+                                                                                    class="h-[18px] w-[18px]">
+                                                                                    <path stroke="currentColor"
+                                                                                        stroke-linecap="round"
+                                                                                        stroke-linejoin="round"
+                                                                                        stroke-width="2"
+                                                                                        d="m15.5 15.5-3-3M13.5 7.9a5.58 5.58 0 0 1-1.64 3.96A5.6 5.6 0 1 1 13.5 7.9">
+                                                                                    </path>
+                                                                                </svg><span class="sr-only">Search for
+                                                                                    similar images</span></button></div>
+                                                                        <div data-state="closed"><button
+                                                                                class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto p-[7px] text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    width="18" height="18"
+                                                                                    fill="none" viewBox="0 0 18 18"
+                                                                                    class="h-[18px] w-[18px]">
+                                                                                    <path stroke="currentColor"
+                                                                                        stroke-linejoin="round"
+                                                                                        stroke-width="2"
+                                                                                        d="M9 3.991c4.878-4.83 13.24 4.14 0 11.384C-4.24 8.131 4.122-.838 9 3.991Z">
+                                                                                    </path>
+                                                                                </svg><span
+                                                                                    class="truncate font-semibold">3</span></button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div data-index="4"
+                                                    style="position: absolute; top: 0px; left: 0px; width: 742px; height: 1113px; transform: translate(0px, 3108px);">
+                                                    <div class="h-full w-full">
+                                                        <div class="group relative h-full w-full"><a
+                                                                href="/g/gen_01kej322dwfv38nxn75b9vg27f"><img
+                                                                    src="https://videos.openai.com/az/vg-assets/task_01kej320t6fhwbwjtf5rqxrw0d%2F1767986271_img_0.webp?se=2026-01-13T00%3A00%3A00Z&amp;sp=r&amp;sv=2024-08-04&amp;sr=b&amp;skoid=aa5ddad1-c91a-4f0a-9aca-e20682cc8969&amp;sktid=a48cca56-e6da-484e-a814-9c849652bcb3&amp;skt=2026-01-09T01%3A32%3A20Z&amp;ske=2026-01-16T01%3A37%3A20Z&amp;sks=b&amp;skv=2024-08-04&amp;sig=fZQU0pvWIc1zOPY9Zy/HejgQmNbCdNztsMkcpmh%2BU7A%3D&amp;ac=oaivgprodscus2"
+                                                                    width="1024" height="1536"
+                                                                    class="h-full w-full" alt="Generated image"></a>
+                                                            <div
+                                                                class="pointer-events-none absolute bottom-0 z-20 flex h-20 w-full items-end bg-gradient-to-t from-black/50 to-transparent pb-1 pr-1.5">
+                                                                <div
+                                                                    class="flex w-full items-center justify-between overflow-hidden">
+                                                                    <div
+                                                                        class="shrink overflow-hidden pl-1 pr-2 font-semibold text-white">
+                                                                        <button
+                                                                            class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto w-full overflow-hidden px-3 py-1.5 text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><span
+                                                                                class="truncate font-semibold">thegreatgbf</span></button>
+                                                                    </div>
+                                                                    <div class="flex shrink-0 gap-0.5">
+                                                                        <div data-state="closed"><button
+                                                                                class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto p-[7px] text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    width="19" height="18"
+                                                                                    fill="none" viewBox="0 0 19 18"
+                                                                                    class="h-[18px] w-[18px]">
+                                                                                    <circle cx="9"
+                                                                                        cy="9" r="6.75"
+                                                                                        stroke="currentColor"
+                                                                                        stroke-width="2"></circle>
+                                                                                    <path stroke="currentColor"
+                                                                                        stroke-linecap="round"
+                                                                                        stroke-width="2"
+                                                                                        d="M11.25 9a4.5 4.5 0 0 0-9 0M15.75 9a4.5 4.5 0 1 1-9 0">
+                                                                                    </path>
+                                                                                </svg></button></div>
+                                                                        <div data-state="closed"><button
+                                                                                class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto p-[7px] text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    fill="none" viewBox="0 0 18 18"
+                                                                                    class="h-[18px] w-[18px]">
+                                                                                    <path stroke="currentColor"
+                                                                                        stroke-linecap="round"
+                                                                                        stroke-linejoin="round"
+                                                                                        stroke-width="2"
+                                                                                        d="m15.5 15.5-3-3M13.5 7.9a5.58 5.58 0 0 1-1.64 3.96A5.6 5.6 0 1 1 13.5 7.9">
+                                                                                    </path>
+                                                                                </svg><span class="sr-only">Search for
+                                                                                    similar images</span></button></div>
+                                                                        <div data-state="closed"><button
+                                                                                class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto p-[7px] text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    width="18" height="18"
+                                                                                    fill="none" viewBox="0 0 18 18"
+                                                                                    class="h-[18px] w-[18px]">
+                                                                                    <path stroke="currentColor"
+                                                                                        stroke-linejoin="round"
+                                                                                        stroke-width="2"
+                                                                                        d="M9 3.991c4.878-4.83 13.24 4.14 0 11.384C-4.24 8.131 4.122-.838 9 3.991Z">
+                                                                                    </path>
+                                                                                </svg><span
+                                                                                    class="truncate font-semibold">3</span></button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div data-index="5"
+                                                    style="position: absolute; top: 0px; left: 0px; width: 742px; height: 495px; transform: translate(0px, 4225px);">
+                                                    <div class="h-full w-full">
+                                                        <div class="group relative h-full w-full"><a
+                                                                href="/g/gen_01kej23xm4erpvdjaxzrpmamdx"><img
+                                                                    src="https://videos.openai.com/az/vg-assets/task_01kej23wcmfk2vta25txfxx5mq%2F1767985288_img_0.webp?se=2026-01-13T00%3A00%3A00Z&amp;sp=r&amp;sv=2024-08-04&amp;sr=b&amp;skoid=aa5ddad1-c91a-4f0a-9aca-e20682cc8969&amp;sktid=a48cca56-e6da-484e-a814-9c849652bcb3&amp;skt=2026-01-09T01%3A32%3A20Z&amp;ske=2026-01-16T01%3A37%3A20Z&amp;sks=b&amp;skv=2024-08-04&amp;sig=S8vRXTFFu6FBSK5FM/Jlsz2n3l5%2Bi9lBYMCvkZnIwT4%3D&amp;ac=oaivgprodscus2"
+                                                                    width="1536" height="1024"
+                                                                    class="h-full w-full" alt="Generated image"></a>
+                                                            <div
+                                                                class="pointer-events-none absolute bottom-0 z-20 flex h-20 w-full items-end bg-gradient-to-t from-black/50 to-transparent pb-1 pr-1.5">
+                                                                <div
+                                                                    class="flex w-full items-center justify-between overflow-hidden">
+                                                                    <div
+                                                                        class="shrink overflow-hidden pl-1 pr-2 font-semibold text-white">
+                                                                        <button
+                                                                            class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto w-full overflow-hidden px-3 py-1.5 text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><span
+                                                                                class="truncate font-semibold">kgfuyghiugliuhlik</span></button>
+                                                                    </div>
+                                                                    <div class="flex shrink-0 gap-0.5">
+                                                                        <div data-state="closed"><button
+                                                                                class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto p-[7px] text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    width="19" height="18"
+                                                                                    fill="none" viewBox="0 0 19 18"
+                                                                                    class="h-[18px] w-[18px]">
+                                                                                    <circle cx="9"
+                                                                                        cy="9" r="6.75"
+                                                                                        stroke="currentColor"
+                                                                                        stroke-width="2"></circle>
+                                                                                    <path stroke="currentColor"
+                                                                                        stroke-linecap="round"
+                                                                                        stroke-width="2"
+                                                                                        d="M11.25 9a4.5 4.5 0 0 0-9 0M15.75 9a4.5 4.5 0 1 1-9 0">
+                                                                                    </path>
+                                                                                </svg></button></div>
+                                                                        <div data-state="closed"><button
+                                                                                class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto p-[7px] text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    fill="none" viewBox="0 0 18 18"
+                                                                                    class="h-[18px] w-[18px]">
+                                                                                    <path stroke="currentColor"
+                                                                                        stroke-linecap="round"
+                                                                                        stroke-linejoin="round"
+                                                                                        stroke-width="2"
+                                                                                        d="m15.5 15.5-3-3M13.5 7.9a5.58 5.58 0 0 1-1.64 3.96A5.6 5.6 0 1 1 13.5 7.9">
+                                                                                    </path>
+                                                                                </svg><span class="sr-only">Search for
+                                                                                    similar images</span></button></div>
+                                                                        <div data-state="closed"><button
+                                                                                class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto p-[7px] text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    width="18" height="18"
+                                                                                    fill="none" viewBox="0 0 18 18"
+                                                                                    class="h-[18px] w-[18px]">
+                                                                                    <path stroke="currentColor"
+                                                                                        stroke-linejoin="round"
+                                                                                        stroke-width="2"
+                                                                                        d="M9 3.991c4.878-4.83 13.24 4.14 0 11.384C-4.24 8.131 4.122-.838 9 3.991Z">
+                                                                                    </path>
+                                                                                </svg></button></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div data-index="6"
+                                                    style="position: absolute; top: 0px; left: 0px; width: 742px; height: 742px; transform: translate(0px, 4724px);">
+                                                    <div class="h-full w-full">
+                                                        <div class="group relative h-full w-full"><a
+                                                                href="/g/gen_01kej25vwdf1gvd6bkwkm0hw12"><img
+                                                                    src="https://videos.openai.com/az/vg-assets/task_01kej25tnwfx29nsedxvv048ak%2F1767985328_img_0.webp?se=2026-01-13T00%3A00%3A00Z&amp;sp=r&amp;sv=2024-08-04&amp;sr=b&amp;skoid=aa5ddad1-c91a-4f0a-9aca-e20682cc8969&amp;sktid=a48cca56-e6da-484e-a814-9c849652bcb3&amp;skt=2026-01-09T01%3A32%3A20Z&amp;ske=2026-01-16T01%3A37%3A20Z&amp;sks=b&amp;skv=2024-08-04&amp;sig=/E8uE8PXEyBuqDXL/kUifH5aoktVhRJQORHZAdJBNgo%3D&amp;ac=oaivgprodscus2"
+                                                                    width="1024" height="1024"
+                                                                    class="h-full w-full" alt="Generated image"></a>
+                                                            <div
+                                                                class="pointer-events-none absolute bottom-0 z-20 flex h-20 w-full items-end bg-gradient-to-t from-black/50 to-transparent pb-1 pr-1.5">
+                                                                <div
+                                                                    class="flex w-full items-center justify-between overflow-hidden">
+                                                                    <div
+                                                                        class="shrink overflow-hidden pl-1 pr-2 font-semibold text-white">
+                                                                        <button
+                                                                            class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto w-full overflow-hidden px-3 py-1.5 text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><span
+                                                                                class="truncate font-semibold">0104a6c66f</span></button>
+                                                                    </div>
+                                                                    <div class="flex shrink-0 gap-0.5">
+                                                                        <div data-state="closed"><button
+                                                                                class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto p-[7px] text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    width="19" height="18"
+                                                                                    fill="none" viewBox="0 0 19 18"
+                                                                                    class="h-[18px] w-[18px]">
+                                                                                    <circle cx="9"
+                                                                                        cy="9" r="6.75"
+                                                                                        stroke="currentColor"
+                                                                                        stroke-width="2"></circle>
+                                                                                    <path stroke="currentColor"
+                                                                                        stroke-linecap="round"
+                                                                                        stroke-width="2"
+                                                                                        d="M11.25 9a4.5 4.5 0 0 0-9 0M15.75 9a4.5 4.5 0 1 1-9 0">
+                                                                                    </path>
+                                                                                </svg></button></div>
+                                                                        <div data-state="closed"><button
+                                                                                class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto p-[7px] text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    fill="none" viewBox="0 0 18 18"
+                                                                                    class="h-[18px] w-[18px]">
+                                                                                    <path stroke="currentColor"
+                                                                                        stroke-linecap="round"
+                                                                                        stroke-linejoin="round"
+                                                                                        stroke-width="2"
+                                                                                        d="m15.5 15.5-3-3M13.5 7.9a5.58 5.58 0 0 1-1.64 3.96A5.6 5.6 0 1 1 13.5 7.9">
+                                                                                    </path>
+                                                                                </svg><span class="sr-only">Search for
+                                                                                    similar images</span></button></div>
+                                                                        <div data-state="closed"><button
+                                                                                class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative rounded-full pointer-events-auto p-[7px] text-white hover:bg-token-bg-active hover:backdrop-blur-[6px]"><svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    width="18" height="18"
+                                                                                    fill="none" viewBox="0 0 18 18"
+                                                                                    class="h-[18px] w-[18px]">
+                                                                                    <path stroke="currentColor"
+                                                                                        stroke-linejoin="round"
+                                                                                        stroke-width="2"
+                                                                                        d="M9 3.991c4.878-4.83 13.24 4.14 0 11.384C-4.24 8.131 4.122-.838 9 3.991Z">
+                                                                                    </path>
+                                                                                </svg><span
+                                                                                    class="truncate font-semibold">3</span></button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div style="height: 1px;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fixed bottom-16 right-3 z-40 tablet:bottom-3"><button
+                                class="inline-flex items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button px-3 py-2 rounded-full relative h-11 gap-2.5 overflow-hidden pl-4 pr-3 text-white transition-transform duration-100 ease-out active:scale-[0.98]"
+                                data-disabled="false">
+                                <div class="absolute inset-0 -z-10 bg-gradient-to-t from-[#051125] to-[#040C18]"><video
+                                        class="h-full w-full object-cover"
+                                        src="https://cdn.openai.com/sora/videos/starry-sky.mp4" autoplay=""
+                                        loop="" playsinline="" aria-hidden="true" tabindex="-1"></video>
+                                    <div class="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-full"
+                                        aria-hidden="true"></div>
+                                </div>
+                                <div class="flex items-center gap-2.5">Open New Sora<svg width="100"
+                                        height="100" viewBox="0 0 100 100" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0">
+                                        <path
+                                            d="M43.4175 -0.000488281C50.4387 -0.000488281 56.7957 2.84467 61.3979 7.44482C63.4989 6.88303 65.7068 6.58252 67.9849 6.58252C82.0316 6.58255 93.4185 17.9694 93.4185 32.0161C93.4184 34.294 93.1169 36.5013 92.5552 38.6021C97.1554 43.2043 100 49.5613 100 56.5825C100 68.3512 92.0064 78.2507 81.1528 81.1528C78.2507 92.0064 68.3512 100 56.5825 100C49.5598 100 43.2016 97.1542 38.5991 92.5522C36.4992 93.1134 34.2929 93.4145 32.0161 93.4146C17.9694 93.4146 6.58252 82.0277 6.58252 67.981C6.58253 65.7046 6.88286 63.4985 7.44385 61.3989C2.84423 56.7967 -0.000488281 50.4402 -0.000488281 43.4194C-0.000393283 31.651 7.99283 21.7504 18.8462 18.8481C21.7478 7.99388 31.6484 -0.000343176 43.4175 -0.000488281ZM42.9487 40.2603C41.1918 33.7038 35.3761 29.5653 29.9604 31.0161C24.5449 32.4675 21.5777 38.9595 23.3345 45.5161C23.363 45.6225 23.3933 45.7288 23.4243 45.8345L23.4204 45.8354L25.2163 52.5376C26.9734 59.094 32.7889 63.2328 38.2046 61.7817C43.6199 60.3303 46.5871 53.8381 44.8306 47.2817L43.0347 40.5796L43.0308 40.5806C43.0048 40.4736 42.9772 40.3666 42.9487 40.2603ZM72.8159 32.8921C71.0589 26.3359 65.2432 22.1973 59.8276 23.6479C54.4122 25.0993 51.4442 31.5915 53.2007 38.1479C53.2292 38.2543 53.2595 38.3616 53.2905 38.4673L53.2866 38.4683L55.0825 45.1694C56.8395 51.7256 62.6553 55.8651 68.0708 54.4146C73.4864 52.9633 76.4535 46.4701 74.6968 39.9136L72.9019 33.2124L72.8979 33.2134C72.872 33.1063 72.8444 32.9984 72.8159 32.8921ZM35.9956 45.7407C36.8416 45.5144 37.7121 46.017 37.939 46.8628C38.1654 47.7087 37.6627 48.5782 36.8169 48.8052C35.9708 49.0318 35.1005 48.5301 34.8735 47.6841C34.6471 46.8381 35.1497 45.9676 35.9956 45.7407ZM28.9487 35.8481C30.4321 38.1604 32.9448 39.6113 35.689 39.7397C33.3765 41.2231 31.9257 43.7367 31.7974 46.481C30.314 44.1685 27.8004 42.7167 25.0562 42.5884C27.3686 41.1051 28.8204 38.5924 28.9487 35.8481ZM65.8638 38.3667C66.7095 38.1405 67.579 38.6424 67.8062 39.4878C68.0328 40.3338 67.5309 41.2041 66.6851 41.4312C65.8389 41.6577 64.9685 41.1552 64.7417 40.3091C64.5156 39.4632 65.0181 38.5936 65.8638 38.3667ZM58.814 28.4731C60.2972 30.7857 62.8109 32.2363 65.5552 32.3647C63.2428 33.848 61.792 36.3618 61.6636 39.106C60.1802 36.7938 57.6665 35.3427 54.9224 35.2144C57.2349 33.731 58.6857 31.2176 58.814 28.4731Z"
+                                            fill="url(#paint0_linear_1_881)"></path>
+                                        <defs>
+                                            <linearGradient id="paint0_linear_1_881" x1="57.7481" y1="17.9369"
+                                                x2="54.9829" y2="85.4047" gradientUnits="userSpaceOnUse">
+                                                <stop stop-color="white"></stop>
+                                                <stop offset="1" stop-color="#A7D8FF"></stop>
+                                            </linearGradient>
+                                        </defs>
+                                    </svg></div>
+                            </button></div>
+                    </div>
+                </div>
+            </div>
+            <div class="pointer-events-none fixed inset-0 z-10"
+                style="will-change: auto; opacity: 1; transform: none;">
+                <div class="fixed left-0 right-0 top-0 z-50 flex flex-col">
+                    <div class="h-full w-full">
+                        <div
+                            class="mt-2 grid grid-cols-[1fr_auto_1fr] gap-1 md:grid-cols-[minmax(100px,_1fr)_minmax(300px,_auto)_minmax(100px,_1fr)] md:gap-4">
+                            <div class="flex gap-0.5 justify-start pl-1 tablet:pl-2">
+                                <div class="pointer-events-auto"><a href="/explore"><button
+                                            class="surface-nav-element group flex h-11 items-center justify-center truncate rounded-full p-1 font-semibold w-11">
+                                            <div
+                                                class="flex h-full w-full items-center justify-center rounded-full group-hover:bg-token-bg-active">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                    fill="none" viewBox="0 0 24 24" class="h-6 w-6">
+                                                    <g clip-path="url(#a)">
+                                                        <path fill="currentColor"
+                                                            d="M21.139 10.053a5.35 5.35 0 0 0-.46-4.392 5.41 5.41 0 0 0-5.824-2.594 5.35 5.35 0 0 0-4.033-1.798 5.41 5.41 0 0 0-5.158 3.744 5.35 5.35 0 0 0-3.576 2.594 5.41 5.41 0 0 0 .665 6.34 5.35 5.35 0 0 0 .46 4.392 5.41 5.41 0 0 0 5.824 2.595 5.35 5.35 0 0 0 4.033 1.798 5.41 5.41 0 0 0 5.16-3.747 5.35 5.35 0 0 0 3.576-2.593 5.41 5.41 0 0 0-.667-6.34m-8.067 11.276a4 4 0 0 1-2.575-.931l.127-.072 4.274-2.469a.7.7 0 0 0 .35-.608v-6.024l1.807 1.043a.07.07 0 0 1 .035.049v4.99a4.027 4.027 0 0 1-4.018 4.022M4.43 17.638a4 4 0 0 1-.48-2.696l.127.076 4.273 2.469a.7.7 0 0 0 .702 0l5.218-3.013v2.086a.07.07 0 0 1-.026.056l-4.32 2.494a4.026 4.026 0 0 1-5.494-1.472m-1.125-9.33A4 4 0 0 1 5.4 6.545l-.002.147v4.937a.7.7 0 0 0 .35.608l5.218 3.012-1.806 1.043a.06.06 0 0 1-.061.005l-4.32-2.496a4.026 4.026 0 0 1-1.473-5.493m14.841 3.454L12.93 8.749l1.806-1.042a.07.07 0 0 1 .06-.006l4.321 2.494a4.024 4.024 0 0 1-.621 7.26v-5.086a.7.7 0 0 0-.349-.607m1.798-2.706-.127-.076-4.273-2.468a.7.7 0 0 0-.702 0L9.624 9.524V7.438a.07.07 0 0 1 .026-.055l4.32-2.492a4.023 4.023 0 0 1 5.974 4.165M8.642 12.774l-1.807-1.043a.06.06 0 0 1-.035-.05v-4.99a4.023 4.023 0 0 1 6.597-3.088l-.127.072-4.274 2.469a.7.7 0 0 0-.351.607zm.981-2.116 2.324-1.342 2.324 1.342v2.683l-2.324 1.341-2.324-1.341z">
+                                                        </path>
+                                                    </g>
+                                                    <defs>
+                                                        <clipPath id="a">
+                                                            <path fill="#fff" d="M1 1h22v22H1z"></path>
+                                                        </clipPath>
+                                                    </defs>
+                                                </svg><span class="sr-only">Home</span></div>
+                                        </button></a></div>
+                            </div>
+                            <div class="flex gap-0.5 justify-center overflow-hidden">
+                                <div class="pointer-events-auto overflow-hidden"></div>
+                            </div>
+                            <div class="flex gap-0.5 justify-end pr-1 tablet:pr-2">
+                                <div class="flex" type="button" id="radix-:r15:" aria-haspopup="menu"
+                                    aria-expanded="false" data-state="closed">
+                                    <div class="pointer-events-auto"><button
+                                            class="surface-nav-element group flex h-11 items-center justify-center truncate rounded-full p-1 font-semibold w-11"
+                                            data-state="closed">
+                                            <div
+                                                class="flex h-full w-full items-center justify-center rounded-full group-hover:bg-token-bg-active">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                    viewBox="0 0 24 24" class="h-6 w-6">
+                                                    <path fill="currentColor"
+                                                        d="M3 6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v1.115a3 3 0 0 1-.982 2.22l-4.19 3.81a1 1 0 0 0-.328.74v5.997a2 2 0 0 1-2.894 1.789l-3-1.5A2 2 0 0 1 8.5 18.382v-4.497a1 1 0 0 0-.327-.74l-4.191-3.81A3 3 0 0 1 3 7.115zm3-1a1 1 0 0 0-1 1v1.115a1 1 0 0 0 .327.74l4.191 3.81a3 3 0 0 1 .982 2.22v4.497l3 1.5v-5.997a3 3 0 0 1 .982-2.22l4.19-3.81a1 1 0 0 0 .328-.74V6a1 1 0 0 0-1-1z">
+                                                    </path>
+                                                </svg><span class="sr-only">Filter</span></div>
+                                        </button></div>
+                                </div>
+                                <div class="pointer-events-auto"><button type="button" aria-haspopup="dialog"
+                                        aria-expanded="false" aria-controls="radix-:r18:" data-state="closed"
+                                        class="surface-nav-element group flex h-11 items-center justify-center truncate rounded-full p-1 font-semibold w-11">
+                                        <div
+                                            class="flex h-full w-full items-center justify-center rounded-full group-hover:bg-token-bg-active">
+                                            <div class="relative flex h-full w-full items-center justify-center">
+                                                <div
+                                                    class="relative flex h-7 w-7 items-center justify-center tablet:h-6 tablet:w-6">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24"
+                                                        height="24" fill="none" viewBox="0 0 24 24"
+                                                        class="h-full w-full">
+                                                        <path fill="currentColor" fill-rule="evenodd"
+                                                            d="M3.8 9.603a8.248 8.248 0 0 1 16.399 0l.674 6.18A2 2 0 0 1 18.885 18h-2.043a5.002 5.002 0 0 1-9.685 0H5.115a2 2 0 0 1-1.988-2.217zM9.273 18a3 3 0 0 0 5.456 0zM12 4.25a6.25 6.25 0 0 0-6.21 5.57L5.114 16h13.77l-.674-6.18A6.25 6.25 0 0 0 12 4.25"
+                                                            clip-rule="evenodd"></path>
+                                                    </svg></div>
+                                            </div><span class="sr-only">Activity</span>
+                                        </div>
+                                    </button></div>
+                                <div class="pointer-events-auto">
+                                    <div type="button" id="radix-:r1a:" aria-haspopup="menu" aria-expanded="false"
+                                        data-state="closed"><button
+                                            class="surface-nav-element group flex h-11 items-center justify-center truncate rounded-full p-1 font-semibold w-11">
+                                            <div
+                                                class="flex h-full w-full items-center justify-center rounded-full group-hover:bg-token-bg-active">
+                                                <img src="https://lh3.googleusercontent.com/a/ACg8ocJDsHL5hi59ogRCTZzQqOeAsVUGVskNVRwvZT5aL-9CHl2EUQna=s96-c"
+                                                    alt="theanhybdz2k4"
+                                                    class="object-cover rounded-full h-6 w-6"><span
+                                                    class="sr-only">User menu</span></div>
+                                        </button></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div
+                    class="absolute bottom-2 left-1/2 hidden w-full max-w-[800px] -translate-x-1/2 px-3 tablet:block tablet:left-[calc(var(--sidebar-width)+2*var(--sidebar-gap)+(100%-(var(--sidebar-width)+2*var(--sidebar-gap)))/2)] tablet:w-[calc(100%-(var(--sidebar-width)+2*var(--sidebar-gap)))] pointer-events-auto">
+                    <div style="will-change: transform; transform: translateY(0%);">
+                        <div
+                            class="relative rounded-[24px] p-2 max-tablet:flex max-tablet:h-[50vh] max-tablet:flex-col">
+                            <div
+                                class="popover-blur popover-ring bg-token-bg-composer absolute inset-0 -z-10 rounded-[24px] shadow-composer">
+                            </div>
+                            <div class="flex h-full flex-col gap-1.5">
+                                <div class="flex">
+                                    <div class="flex py-1"><span><button
+                                                class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative w-[36px] h-[36px] p-1.5 rounded-full"
+                                                type="button" id="radix-:r1c:" aria-haspopup="menu"
+                                                aria-expanded="false" data-state="closed"><svg
+                                                    xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                    fill="none" viewBox="0 0 24 24">
+                                                    <path fill="currentColor" fill-rule="evenodd"
+                                                        d="M12 6a1 1 0 0 1 1 1v4h4a1 1 0 1 1 0 2h-4v4a1 1 0 1 1-2 0v-4H7a1 1 0 1 1 0-2h4V7a1 1 0 0 1 1-1"
+                                                        clip-rule="evenodd"></path>
+                                                </svg><span class="sr-only">Attach media</span></button></span><button
+                                            class="contents"></button><input
+                                            accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime,video/x-m4v,video/x-msvideo"
+                                            class="hidden" type="file"></div>
+                                    <textarea
+                                        class="flex w-full rounded-md text-sm placeholder:text-token-text-secondary focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 !overflow-x-hidden tablet:max-h-[80vh] bg-transparent px-2 py-3 max-tablet:flex-1"
+                                        placeholder="Describe your video..." rows="1"
+                                        style="overflow: hidden; overflow-wrap: break-word; resize: none; text-align: start; height: 44px;"></textarea>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex gap-1.5"><button
+                                            class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative bg-token-bg-composer-button data-[disabled=false]:hover:bg-token-bg-active disabled:text-token-text-primary/40 px-3 py-2 h-9 rounded-full max-w-52 overflow-hidden font-semibold outline-none disabled:opacity-50"
+                                            type="button" role="combobox" aria-controls="radix-:r1e:"
+                                            aria-expanded="false" aria-autocomplete="none" dir="ltr"
+                                            data-state="closed">
+                                            <div class="flex items-center gap-2"><svg
+                                                    xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                    fill="none" viewBox="0 0 24 24"
+                                                    class="hidden h-[18px] w-[18px] desktop:block">
+                                                    <path fill="currentColor"
+                                                        d="M16.679 4.371a1 1 0 0 0-1.857-.742zM12.822 8.63a1 1 0 0 0 1.857.742zM11.179 4.37a1 1 0 0 0-1.857-.742zM7.321 8.63a1 1 0 0 0 1.856.742zM6.184 19.564l.454-.891zm-1.748-1.748.891-.454zm15.128 0-.891-.454zm-1.748 1.748-.454-.891zm0-15.128-.454.891zm1.748 1.748-.891.454zM6.184 4.436l.454.891zM4.436 6.184l.891.454zM20 8H4v2h16zm-5.178-4.371-2 5 1.857.742 2-5zm-5.5 0-2 5 1.856.742 2-5zM10.4 5h3.2V3h-3.2zm8.6 5.4v3.2h2v-3.2zM13.6 19h-3.2v2h3.2zM5 13.6v-3.2H3v3.2zm5.4 5.4c-1.137 0-1.929 0-2.546-.051-.605-.05-.953-.142-1.216-.276l-.908 1.782c.592.302 1.233.428 1.961.487.718.059 1.605.058 2.709.058zM3 13.6c0 1.104 0 1.991.058 2.709.06.729.185 1.369.487 1.961l1.782-.908c-.134-.263-.226-.611-.276-1.216C5.001 15.529 5 14.736 5 13.6zm3.638 5.073a3 3 0 0 1-1.311-1.311l-1.782.908a5 5 0 0 0 2.185 2.185zM19 13.6c0 1.137 0 1.929-.051 2.546-.05.605-.142.953-.276 1.216l1.782.908c.302-.592.428-1.232.487-1.961.059-.718.058-1.605.058-2.709zM13.6 21c1.104 0 1.991 0 2.709-.058.729-.06 1.369-.185 1.961-.487l-.908-1.782c-.263.134-.611.226-1.216.276-.617.05-1.41.051-2.546.051zm5.073-3.638a3 3 0 0 1-1.311 1.311l.908 1.782a5 5 0 0 0 2.185-2.185zM13.6 5c1.137 0 1.929 0 2.546.051.605.05.953.142 1.216.276l.908-1.782c-.592-.302-1.232-.428-1.961-.487C15.59 2.999 14.704 3 13.6 3zm7.4 5.4c0-1.104 0-1.991-.058-2.709-.06-.728-.185-1.369-.487-1.96l-1.782.907c.134.263.226.611.276 1.216.05.617.051 1.41.051 2.546zm-3.638-5.073a3 3 0 0 1 1.311 1.311l1.782-.908a5 5 0 0 0-2.185-2.185zM10.4 3c-1.104 0-1.991 0-2.709.058-.728.06-1.369.185-1.96.487l.907 1.782c.263-.134.611-.226 1.216-.276C8.471 5.001 9.264 5 10.4 5zM5 10.4c0-1.137 0-1.929.051-2.546.05-.605.142-.953.276-1.216L3.545 5.73c-.302.592-.428 1.233-.487 1.961C2.999 8.41 3 9.296 3 10.4zm.73-6.855A5 5 0 0 0 3.545 5.73l1.782.908a3 3 0 0 1 1.311-1.311z">
+                                                    </path>
+                                                </svg><span class="truncate" style="pointer-events: none;">
+                                                    <div class="flex items-center justify-center gap-1">Video</div>
+                                                </span></div>
+                                        </button><button
+                                            class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative bg-token-bg-composer-button data-[disabled=false]:hover:bg-token-bg-active disabled:text-token-text-primary/40 px-3 py-2 h-9 rounded-full max-w-52 overflow-hidden font-semibold outline-none disabled:opacity-50"
+                                            type="button" role="combobox" aria-controls="radix-:r1g:"
+                                            aria-expanded="false" aria-autocomplete="none" dir="ltr"
+                                            data-state="closed">
+                                            <div class="flex items-center gap-2"><svg
+                                                    xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                    fill="none" viewBox="0 0 24 24"
+                                                    class="hidden h-[18px] w-[18px] desktop:block">
+                                                    <path fill="currentColor"
+                                                        d="M10.759 1h2.482c.805 0 1.47 0 2.01.044.563.046 1.08.145 1.565.392a4 4 0 0 1 1.748 1.748c.247.485.346 1.002.392 1.564C19 5.29 19 5.954 19 6.758v10.483c0 .805 0 1.47-.044 2.01-.046.563-.145 1.08-.392 1.565a4 4 0 0 1-1.748 1.748c-.485.247-1.002.346-1.564.392-.541.044-1.206.044-2.01.044h-2.483c-.805 0-1.47 0-2.01-.044-.563-.046-1.08-.145-1.565-.392a4 4 0 0 1-1.748-1.748c-.247-.485-.346-1.002-.392-1.564C5 18.71 5 18.046 5 17.242V6.758c0-.805 0-1.47.044-2.01.046-.563.145-1.08.392-1.565a4 4 0 0 1 1.748-1.748c.485-.247 1.002-.346 1.564-.392C9.29 1 9.954 1 10.758 1M8.91 3.038c-.438.035-.663.1-.819.18a2 2 0 0 0-.874.874c-.08.156-.145.38-.18.819C7 5.361 7 5.943 7 6.8v10.4c0 .857 0 1.439.038 1.889.035.438.1.663.18.819a2 2 0 0 0 .874.874c.156.08.38.145.819.18C9.361 21 9.943 21 10.8 21h2.4c.857 0 1.439 0 1.889-.038.438-.035.663-.1.819-.18a2 2 0 0 0 .874-.874c.08-.156.145-.38.18-.819.037-.45.038-1.032.038-1.889V6.8c0-.857 0-1.439-.038-1.889-.035-.438-.1-.663-.18-.819a2 2 0 0 0-.874-.874c-.156-.08-.38-.145-.819-.18C14.639 3 14.057 3 13.2 3h-2.4c-.857 0-1.439 0-1.889.038">
+                                                    </path>
+                                                </svg><span class="truncate" style="pointer-events: none;">
+                                                    <div class="flex items-center justify-center gap-1">9:16</div>
+                                                </span></div>
+                                        </button><button
+                                            class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative bg-token-bg-composer-button data-[disabled=false]:hover:bg-token-bg-active disabled:text-token-text-primary/40 px-3 py-2 h-9 rounded-full max-w-52 overflow-hidden font-semibold outline-none disabled:opacity-50"
+                                            type="button" role="combobox" aria-controls="radix-:r1i:"
+                                            aria-expanded="false" aria-autocomplete="none" dir="ltr"
+                                            data-state="closed">
+                                            <div class="flex items-center gap-2"><svg
+                                                    xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                    fill="none" viewBox="0 0 24 24"
+                                                    class="hidden h-[18px] w-[18px] desktop:block">
+                                                    <path stroke="currentColor" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M16.109 4H7.891a1 1 0 0 0-.678.265l-5.448 5.03a1 1 0 0 0-.029 1.441l9.557 9.557a1 1 0 0 0 1.414 0l9.557-9.557a1 1 0 0 0-.029-1.442l-5.448-5.029A1 1 0 0 0 16.11 4Z">
+                                                    </path>
+                                                </svg><span class="truncate" style="pointer-events: none;">
+                                                    <div class="flex items-center justify-center gap-1">360p</div>
+                                                </span></div>
+                                        </button><button
+                                            class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative bg-token-bg-composer-button data-[disabled=false]:hover:bg-token-bg-active disabled:text-token-text-primary/40 px-3 py-2 h-9 rounded-full max-w-52 overflow-hidden font-semibold outline-none disabled:opacity-50"
+                                            type="button" role="combobox" aria-controls="radix-:r1k:"
+                                            aria-expanded="false" aria-autocomplete="none" dir="ltr"
+                                            data-state="closed">
+                                            <div class="flex items-center gap-2"><svg
+                                                    xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                    fill="none" viewBox="0 0 24 24"
+                                                    class="hidden h-[18px] w-[18px] desktop:block">
+                                                    <circle cx="12" cy="12" r="9" stroke="currentColor"
+                                                        stroke-width="2"></circle>
+                                                    <path stroke="currentColor" stroke-linecap="round"
+                                                        stroke-linejoin="round" stroke-width="2" d="M16.33 9.5 12 12">
+                                                    </path>
+                                                </svg><span class="truncate" style="pointer-events: none;">
+                                                    <div class="flex items-center justify-center gap-1">10s</div>
+                                                </span></div>
+                                        </button><button
+                                            class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative bg-token-bg-composer-button data-[disabled=false]:hover:bg-token-bg-active disabled:text-token-text-primary/40 px-3 py-2 h-9 rounded-full max-w-52 overflow-hidden font-semibold outline-none disabled:opacity-50"
+                                            type="button" role="combobox" aria-controls="radix-:r1m:"
+                                            aria-expanded="false" aria-autocomplete="none" dir="ltr"
+                                            data-state="closed">
+                                            <div class="flex items-center gap-2"><svg
+                                                    xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                    fill="none" viewBox="0 0 24 24"
+                                                    class="hidden h-[18px] w-[18px] desktop:block">
+                                                    <rect width="18" height="16" x="3" y="4"
+                                                        stroke="currentColor" stroke-width="2" rx="3"></rect>
+                                                    <circle cx="9.5" cy="12" r="2" fill="currentColor">
+                                                    </circle>
+                                                    <circle cx="14.5" cy="12" r="2" fill="currentColor">
+                                                    </circle>
+                                                </svg><span class="truncate" style="pointer-events: none;">
+                                                    <div class="flex items-center justify-center gap-1">2v</div>
+                                                </span></div>
+                                        </button><button
+                                            class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative bg-token-bg-composer-button data-[disabled=false]:hover:bg-token-bg-active disabled:text-token-text-primary/40 rounded-full h-9 w-9 p-0 disabled:opacity-50"
+                                            type="button" role="combobox" aria-controls="radix-:r1o:"
+                                            aria-expanded="false" aria-autocomplete="none" dir="ltr"
+                                            data-state="closed">
+                                            <div class="flex items-center justify-center"><svg
+                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                    viewBox="0 0 24 24" class="h-[18px] w-[18px]">
+                                                    <path stroke="currentColor" stroke-width="2"
+                                                        d="M17.5 3h-11a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2ZM4.5 17h15">
+                                                    </path>
+                                                    <path stroke="currentColor" stroke-linecap="round"
+                                                        stroke-linejoin="round" stroke-width="2"
+                                                        d="M9 7.75h6m-2-1v2M15 12.25H9m2 1v-2"></path>
+                                                </svg></div>
+                                        </button><button
+                                            class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative text-token-text-tertiary hover:text-token-text-primary bg-transparent hover:bg-token-bg-active hover:border-none border border-token-bg-composer-button w-[36px] h-[36px] p-1.5 rounded-full aspect-square outline-none"
+                                            type="button" aria-haspopup="dialog" aria-expanded="false"
+                                            aria-controls="radix-:r1q:" data-state="closed"><svg
+                                                xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                fill="none" viewBox="0 0 16 16" class="h-4 w-4">
+                                                <path fill="currentColor" stroke="currentColor" stroke-width="1.242"
+                                                    d="M8.546 13.5a.546.546 0 1 1-1.092 0 .546.546 0 0 1 1.092 0Z">
+                                                </path>
+                                                <path stroke="currentColor" stroke-linecap="round"
+                                                    stroke-linejoin="round" stroke-width="2"
+                                                    d="M8 10c0-.763.4-1.466 1.038-1.881 1.522-.99 2.028-1.552 2.028-2.887 0-1.6-1.345-2.899-3.066-2.899-1.452 0-2.721.924-3.067 2.175">
+                                                </path>
+                                            </svg></button></div>
+                                    <div class="flex gap-1.5"><button
+                                            class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default data-[disabled=true]:opacity-50 group/button relative bg-token-bg-composer-button data-[disabled=false]:hover:bg-token-bg-active disabled:opacity-50 disabled:text-token-text-primary/40 px-3 py-2 h-9 rounded-full font-semibold"
+                                            data-disabled="false" data-state="closed">Storyboard</button><button
+                                            class="inline-flex gap-1.5 items-center justify-center whitespace-nowrap text-sm font-semibold focus-visible:outline-none data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-default group/button relative bg-token-bg-inverse text-token-text-inverse hover:bg-token-bg-inverse/80 data-[disabled=true]:opacity-100 data-[disabled=true]:bg-token-bg-secondary data-[disabled=true]:text-token-text-primary/30 w-[36px] h-[36px] p-1.5 rounded-full"
+                                            disabled="" data-disabled="true" data-state="closed"><svg
+                                                xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                fill="none" viewBox="0 0 24 24">
+                                                <path fill="currentColor"
+                                                    d="M11.293 5.293a1 1 0 0 1 1.414 0l5 5a1 1 0 0 1-1.414 1.414L13 8.414V18a1 1 0 1 1-2 0V8.414l-3.293 3.293a1 1 0 0 1-1.414-1.414z">
+                                                </path>
+                                            </svg><span class="sr-only">Create video</span></button></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>

@@ -1,0 +1,38 @@
+# Python Tool Sora
+
+## Ignore Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+venv_*
+*.egg-info/
+dist/
+build/
+
+# Chrome cache
+chrome_cache/
+
+# Downloads
+downloads/
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Config (keep template, ignore actual)
+config/profiles.json
+
+# Build
+*.exe
+*.spec
