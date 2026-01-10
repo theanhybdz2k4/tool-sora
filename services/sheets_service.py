@@ -24,12 +24,12 @@ class SheetRow:
         row_index: int,
         stt: str = "",
         prompt: str = "",
-        image_path: str = "",
+        image_paths: List[str] = None,
         save_name: str = "",
         output_path: str = "",
         presets: str = "",
         status: str = "",
-        type: str = "video",
+        type: str = "",
         aspect_ratio: str = "16:9",
         duration: str = "10s",
         resolution: str = "480p",
@@ -40,12 +40,12 @@ class SheetRow:
         self.row_index = row_index
         self.stt = stt
         self.prompt = prompt
-        self.image_path = image_path
+        self.image_paths = image_paths or []
         self.save_name = save_name
         self.output_path = output_path
         self.presets = presets
         self.status = status
-        self.type = type.lower() if type else "video"  # Normalize to lowercase
+        self.type = type.lower() if type else ""
         self.aspect_ratio = aspect_ratio
         self.duration = duration
         self.resolution = resolution
@@ -58,7 +58,7 @@ class SheetRow:
             "row_index": self.row_index,
             "stt": self.stt,
             "prompt": self.prompt,
-            "image_path": self.image_path,
+            "image_paths": self.image_paths,
             "save_name": self.save_name,
             "output_path": self.output_path,
             "presets": self.presets,
@@ -189,16 +189,20 @@ class GoogleSheetsService:
                 if skip_completed and status.lower() in ["done", "completed", "hoàn thành", "✅"]:
                     continue
                     
+                # Parse image paths
+                raw_image_val = row_data[header_map.get("image_path", -1)] if "image_path" in header_map else ""
+                image_paths = [p.strip() for p in raw_image_val.split(',') if p.strip()] if raw_image_val else []
+
                 row = SheetRow(
                     row_index=i,
                     stt=row_data[header_map.get("stt", 0)] if "stt" in header_map else str(i-1),
                     prompt=row_data[header_map.get("prompt", -1)] if "prompt" in header_map else "",
-                    image_path=row_data[header_map.get("image_path", -1)] if "image_path" in header_map else "",
+                    image_paths=image_paths,
                     save_name=row_data[header_map.get("save_name", -1)] if "save_name" in header_map else "",
                     output_path=row_data[header_map.get("output_path", -1)] if "output_path" in header_map else "",
                     presets=row_data[header_map.get("presets", -1)] if "presets" in header_map else "",
                     status=status,
-                    type=row_data[header_map.get("type", -1)] if "type" in header_map and header_map.get("type", -1) >= 0 and header_map.get("type", -1) < len(row_data) else "video",
+                    type=row_data[header_map.get("type", -1)] if "type" in header_map and header_map.get("type", -1) >= 0 and header_map.get("type", -1) < len(row_data) else "",
                     aspect_ratio=row_data[header_map.get("aspect_ratio", -1)] if "aspect_ratio" in header_map else "16:9",
                     duration=row_data[header_map.get("duration", -1)] if "duration" in header_map else "5s",
                     model=row_data[header_map.get("model", -1)] if "model" in header_map else "",
@@ -339,9 +343,13 @@ class ExcelService:
                 # Note: output_path column không còn được sử dụng, chỉ dùng save_name + output_dir từ settings
                 
                 # Resolve image path if image_dir is set
-                image_path = image_name
-                if image_name and self.image_dir:
-                    image_path = self._find_image(image_name)
+                image_paths = []
+                if image_name:
+                    if self.image_dir:
+                        image_paths = self._find_images(image_name)
+                    else:
+                        # Split by comma if multiple images provided but no dir set (raw paths)
+                        image_paths = [p.strip() for p in image_name.split(',') if p.strip()]
                 
                 # Resolve output path - đơn giản hóa: chỉ dùng save_name và output_dir từ settings
                 if save_name:
@@ -370,12 +378,12 @@ class ExcelService:
                     row_index=i,
                     stt=get_val("stt") or str(i-1),
                     prompt=get_val("prompt"),
-                    image_path=image_path,
+                    image_paths=image_paths,
                     save_name=save_name,
                     output_path=output_path,
                     presets=get_val("presets"),
                     status=status,
-                    type=get_val("type") or "video",
+                    type=get_val("type") or "",
                     aspect_ratio=get_val("aspect_ratio") or "16:9",
                     duration=get_val("duration") or "10s",
                     resolution=get_val("resolution") or "480p",
@@ -432,27 +440,42 @@ class ExcelService:
             self.workbook.save(self.filepath)
             self.log(f"💾 Saved: {self.filepath}")
     
-    def _find_image(self, image_name: str) -> str:
-        """Find image file by name (with or without extension)"""
-        if not self.image_dir or not self.image_dir.exists():
-            return image_name  # Return as-is if no image_dir set
-        
-        # Common image extensions
-        extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp']
-        
-        # Check if already has extension
-        image_path = self.image_dir / image_name
-        if image_path.exists():
-            return str(image_path)
+    def _find_images(self, image_names_str: str) -> List[str]:
+        """Find image files by names (comma separated)"""
+        if not image_names_str:
+            return []
             
-        # Try adding extensions
-        for ext in extensions:
-            image_path = self.image_dir / f"{image_name}{ext}"
+        found_paths = []
+        image_names = [n.strip() for n in image_names_str.split(',') if n.strip()]
+        
+        for image_name in image_names:
+            if not self.image_dir or not self.image_dir.exists():
+                found_paths.append(image_name)
+                continue
+            
+            # Common image extensions
+            extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp']
+            
+            # Check if already has extension
+            image_path = self.image_dir / image_name
             if image_path.exists():
-                return str(image_path)
+                found_paths.append(str(image_path))
+                continue
                 
-        # Return original if not found
-        return image_name
+            # Try adding extensions
+            found = False
+            for ext in extensions:
+                image_path = self.image_dir / f"{image_name}{ext}"
+                if image_path.exists():
+                    found_paths.append(str(image_path))
+                    found = True
+                    break
+            
+            if not found:
+                # Return original if not found
+                found_paths.append(image_name)
+                
+        return found_paths
 
 
 def create_template_excel(filepath: str):
@@ -463,16 +486,15 @@ def create_template_excel(filepath: str):
     
     # Headers
     headers = [
-        "STT", "PROMPT", "IMAGE", "SAVENAME", "PATH", 
-        "TYPE", "ASPECT_RATIO", "DURATION", "RESOLUTION", "VARIATIONS", "MODEL", "PRESETS", "STATUS"
+        "STT", "PROMPT", "IMAGE", "SAVENAME", "PATH", "TYPE", "ASPECT_RATIO", "DURATION", "RESOLUTION", "VARIATIONS", "STATUS"
     ]
     for col, header in enumerate(headers, start=1):
         ws.cell(row=1, column=col, value=header)
         
     # Sample rows
     sample_data = [
-        ["1", "A cinematic shot of a sunrise over mountains", "", "sunrise_video", "C:/Videos/Output", "video", "16:9", "10s", "480p", "1", "", "", ""],
-        ["2", "Close-up of coffee being poured into a cup", "", "coffee_pour", "C:/Videos/Output", "video", "9:16", "5s", "720p", "2", "", "", ""],
+        ["1", "A cinematic shot of a sunrise over mountains", "", "sunrise_video", "D:\\Videos", "video", "16:9", "5s", "480p", "1", ""],
+        ["2", "Close-up of coffee being poured into a cup", "", "coffee_pour", "", "image", "1:1", "", "", "1", ""],
     ]
     
     for row_idx, row_data in enumerate(sample_data, start=2):

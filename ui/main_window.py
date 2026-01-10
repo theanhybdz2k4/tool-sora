@@ -7,6 +7,7 @@ import threading
 import queue
 import os
 import sys
+import shutil
 from pathlib import Path
 from typing import List, Dict, Callable
 
@@ -29,7 +30,7 @@ from config.settings import (
 )
 from core.browser import BrowserCore
 from core.thread_pool import ThreadPoolManager, Task, TaskStatus
-from services.sheets_service import ExcelService, SheetRow, create_template_excel
+from services.sheets_service import ExcelService, SheetRow, create_template_excel, GoogleSheetsService
 from services.sora_service import SoraAutomationService
 
 
@@ -281,7 +282,13 @@ class SoraToolApp:
         row1 = ttk.Frame(defaults_frame)
         row1.pack(fill="x", pady=5)
         
-        ttk.Label(row1, text="Default Aspect Ratio:").pack(side="left")
+        ttk.Label(row1, text="Default Type:").pack(side="left")
+        self.default_type = tk.StringVar(value=self.settings.get("default_type", "video"))
+        type_combo = ttk.Combobox(row1, textvariable=self.default_type, width=10,
+                                   values=["video", "image"])
+        type_combo.pack(side="left", padx=10)
+
+        ttk.Label(row1, text="Default Aspect Ratio:").pack(side="left", padx=(30, 0))
         self.default_aspect = tk.StringVar(value=self.settings.get("default_aspect_ratio", "16:9"))
         aspect_combo = ttk.Combobox(row1, textvariable=self.default_aspect, width=10,
                                    values=["16:9", "3:2", "1:1", "2:3", "9:16"])
@@ -490,7 +497,7 @@ class SoraToolApp:
         filepath = filedialog.asksaveasfilename(
             title="Save Template",
             defaultextension=".xlsx",
-            initialname="sora_prompts_template.xlsx",
+            initialfile="sora_prompts_template.xlsx",
             filetypes=[("Excel Files", "*.xlsx")]
         )
         if filepath:
@@ -503,27 +510,48 @@ class SoraToolApp:
         
         try:
             if self.source_type.get() == "excel":
-                filepath = self.excel_path.get()
-                if not filepath:
-                    messagebox.showwarning("Warning", "Please select an Excel file")
+                path = self.excel_path.get()
+                if not path or not os.path.exists(path):
+                    messagebox.showerror("Error", "File not found")
                     return
-                    
+                
+                # Initialize Excel service
                 # Use Image and Output folders from settings
                 image_dir = self.image_folder.get() if hasattr(self, 'image_folder') else str(BASE_DIR / "Image")
                 output_dir = self.output_folder.get() if hasattr(self, 'output_folder') else str(DOWNLOADS_DIR)
-                
-                service = ExcelService(
+
+                self.excel_service = ExcelService(
                     log_callback=self._log,
                     image_dir=image_dir,
                     output_dir=output_dir
                 )
-                if service.load(filepath):
-                    self.tasks = service.read_worksheet(skip_completed=True)
+                if self.excel_service.load(path):
+                    self.tasks = self.excel_service.read_worksheet(skip_completed=True)
                     
             else:
-                # Google Sheets - not implemented for demo
-                messagebox.showinfo("Info", "Google Sheets integration requires setup")
-                return
+                # Google Sheets
+                url = self.gsheet_url.get()
+                if not url:
+                    messagebox.showerror("Error", "Please enter Google Sheet URL")
+                    return
+                    
+                # Use key path from settings or default
+                creds_path = self.settings.get("google_creds_path", "credentials.json")
+                
+                if not os.path.exists(creds_path):
+                    messagebox.showerror("Error", f"Credentials file not found: {creds_path}\nPlease copy 'credentials.json' to the tool folder.")
+                    return
+                
+                self.excel_service = GoogleSheetsService(
+                    credentials_path=creds_path,
+                    log_callback=self._log
+                )
+                
+                if self.excel_service.connect(spreadsheet_url=url):
+                    self.tasks = self.excel_service.read_worksheet(skip_completed=True)
+                else:
+                    messagebox.showerror("Error", "Failed to connect to Google Sheets.\nCheck Logs tab for details.")
+                    return
                 
             # Update UI
             self.task_count_label.config(text=f"✅ {len(self.tasks)} tasks loaded")
@@ -607,11 +635,40 @@ class SoraToolApp:
     def _remove_profile(self):
         """Remove selected profile"""
         name = self.profile_combo.get()
-        if name and messagebox.askyesno("Confirm", f"Remove profile '{name}'?"):
-            del self.profiles[name]
-            save_profiles(self.profiles)
-            self._refresh_profiles()
-            self._log(f"🗑️ Profile removed: {name}")
+        if name and messagebox.askyesno("Xác nhận", f"Bạn có chắc muốn xóa profile '{name}'?\nToàn bộ dữ liệu browser của profile này sẽ bị xóa vĩnh viễn."):
+            # Delete directory content
+            # Remove from list
+            if name in self.profiles:
+                try:
+                    profile = self.profiles[name]
+                    # Determine cache directory
+                    # Note: We reconstruct the default path logic here to be safe
+                    # Only delete if it looks like a valid profile path inside CHROME_CACHE_DIR to avoid accidents
+                    cache_dir = profile.get("cache_dir")
+                    if not cache_dir:
+                        cache_dir = str(CHROME_CACHE_DIR / name)
+                    
+                    # Convert to Path object for safety checks
+                    cache_path = Path(cache_dir)
+                    
+                    # Safety check: Ensure it is inside CHROME_CACHE_DIR or specifically defined
+                    # We only proceed if it exists
+                    if cache_path.exists():
+                        self._log(f"Đang xóa dữ liệu profile: {cache_path}")
+                        shutil.rmtree(cache_path)
+                    else:
+                        self._log(f"Không tìm thấy thư mục profile: {cache_path}")
+
+                    # Remove from list inside the block
+                    del self.profiles[name]
+                    save_profiles(self.profiles)
+                    self._refresh_profiles()
+                    self._log(f"🗑️ Profile removed: {name}")
+                except Exception as e:
+                    self._log(f"❌ Lỗi khi xóa dữ liệu profile: {e}")
+                    messagebox.showerror("Lỗi", f"Không thể xóa dữ liệu profile:\n{e}")
+                    return
+
             # Update thread count if it exceeds available profiles
             if self.thread_count.get() > len(self.profiles):
                 self.thread_count.set(len(self.profiles) if self.profiles else 1)
@@ -651,6 +708,7 @@ class SoraToolApp:
         self.settings.update({
             "max_threads": self.thread_count.get(),
             "thread_delay_seconds": self.delay_seconds.get(),
+            "default_type": self.default_type.get(),
             "default_aspect_ratio": self.default_aspect.get(),
             "default_duration": self.default_duration.get(),
             "default_resolution": self.default_resolution.get(),
@@ -720,6 +778,8 @@ class SoraToolApp:
         if actual_threads == 0:
             messagebox.showwarning("Warning", "Không có profile để chạy")
             return
+            
+        self._log(f"⚡ Yêu cầu: {requested_threads} threads | Có sẵn: {num_profiles} profiles | Thực tế: {actual_threads} threads")
             
         self.is_running = True
         self.start_btn.config(state="disabled")
@@ -798,14 +858,17 @@ class SoraToolApp:
             row_index=data.get("row_index", 0),
             stt=data.get("stt", ""),
             prompt=data.get("prompt", ""),
-            image_path=data.get("image_path", ""),
+            image_paths=data.get("image_paths") or ([data.get("image_path")] if data.get("image_path") else []),
             save_name=data.get("save_name", ""),
             output_path=data.get("output_path", str(DOWNLOADS_DIR)),
             presets=data.get("presets", ""),
             status=data.get("status", ""),
-            aspect_ratio=data.get("aspect_ratio", self.default_aspect.get()),
+            type=data.get("type") or self.default_type.get(),
+            aspect_ratio=data.get("aspect_ratio") or self.default_aspect.get(),
             duration=data.get("duration", self.default_duration.get()),
         )
+        
+        self._log(f"🔎 Task {row.row_index} Type Debug: Final='{row.type}' | Sheet='{data.get('type')}' | Default='{self.default_type.get()}'")
         
         # Process
         result = sora.process_row(row)
@@ -815,10 +878,22 @@ class SoraToolApp:
         """Called when a task completes"""
         self._update_stats()
         
+        # Update Excel status
+        if self.source_type.get() == "excel" and hasattr(self, 'excel_service'):
+             row_index = task.data.get("row_index")
+             if row_index is not None:
+                 self.excel_service.update_status(row_index, "Completed")
+        
     def _on_task_error(self, task: Task, error: Exception):
         """Called when a task fails"""
         self._log(f"❌ Task {task.id} error: {error}")
         self._update_stats()
+        
+        # Update Excel status
+        if self.source_type.get() == "excel" and hasattr(self, 'excel_service'):
+             row_index = task.data.get("row_index")
+             if row_index is not None:
+                 self.excel_service.update_status(row_index, f"Failed: {error}")
         
     def _stop_execution(self):
         """Stop execution"""

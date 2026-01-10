@@ -2,7 +2,7 @@ import os
 import time
 import requests
 from pathlib import Path
-from typing import Optional, Callable
+from typing import Optional, Callable, List
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -211,13 +211,6 @@ class SoraAutomationService:
     def upload_image(self, image_path: str) -> bool:
         """
         Upload reference image with proper modal handling.
-        
-        Workflow:
-        1. Find file input and send file path
-        2. Wait for "Media upload agreement" modal to appear
-        3. Tick ALL checkboxes
-        4. Click Accept button
-        5. Wait for modal to close and image to load
         """
         if not image_path or not os.path.exists(image_path):
             self.log("⚠️ Không có ảnh để upload")
@@ -543,22 +536,40 @@ class SoraAutomationService:
                 self._set_dropdown_option(aspect_ratio, "aspect")
                 time.sleep(0.5)
             
-            # Resolution
+            # Resolution (Only for Video)
             if resolution:
-                self._set_dropdown_option(resolution, "resolution")
-                time.sleep(0.5)
+                if type and "image" in type.lower():
+                     self.log("  ℹ️ Skip Resolution (Not available for Image)")
+                else:
+                     self._set_dropdown_option(resolution, "resolution")
+                     time.sleep(0.5)
             
-            # Duration
+            # Duration (Only for Video)
             if duration:
-                # Normalize duration format (remove 's' or 'seconds')
-                dur_text = duration.replace('s', '').replace('seconds', '').strip()
-                dur_text = f"{dur_text} seconds" if dur_text.isdigit() else duration
-                self._set_dropdown_option(dur_text, "duration")
-                time.sleep(0.5)
+                if type and "image" in type.lower():
+                     self.log("  ℹ️ Skip Duration (Not available for Image)")
+                else:
+                     # Normalize duration format (remove 's' or 'seconds')
+                     dur_text = duration.replace('s', '').replace('seconds', '').strip()
+                     dur_text = f"{dur_text} seconds" if dur_text.isdigit() else duration
+                     self._set_dropdown_option(dur_text, "duration")
+                     time.sleep(0.5)
             
             # Variations
             if variations:
-                var_text = f"{variations} video" if variations == 1 else f"{variations} videos"
+                suffix = "video"
+                if type and "image" in type.lower():
+                    suffix = "image"
+                
+                # Handle plural "videos"/"images" (usually 1 is singular, others plural)
+                # But UI screenshot shows "4 images", "2 images", "1 image"
+                # And "4 videos", "2 videos", "1 video"
+                
+                # Check for just number in case passing "videos" failed previously
+                is_plural = str(variations) != "1"
+                suffix += "s" if is_plural else ""
+                
+                var_text = f"{variations} {suffix}"
                 self._set_dropdown_option(var_text, "variations")
                 time.sleep(0.5)
             
@@ -601,26 +612,42 @@ class SoraAutomationService:
             for btn in bottom_bar_buttons:
                 try:
                     btn_text = btn.text.lower().strip()
+                    aria_label = btn.get_attribute('aria-label') or ""
+                    aria_label = aria_label.lower()
+                    role = btn.get_attribute("role")
                     
                     if option_type == "type":
-                        # Look for Type buttons: Image or Video
-                        # The Type dropdown is usually at the top of the settings bar
+                        # Require role="combobox"
+                        if role != "combobox":
+                            continue
+
+                        # Look for Type buttons: Image or Video or aria-label="Media type"
+                        # EXCLUDE "search" to avoid "search for similar images"
+                        if ("type" in aria_label or "media" in aria_label) and "search" not in aria_label:
+                             btn.click()
+                             self.log(f"  🎨 Clicked type button (by aria): {aria_label}")
+                             time.sleep(0.5)
+                             break
+                        # Text check
                         if btn_text == "image" or btn_text == "video":
                             btn.click()
                             self.log(f"  🎨 Clicked type button: {btn_text}")
                             time.sleep(0.5)
                             break
-                        # Also check for buttons with "Image" or "Video" text
-                        elif "image" in btn_text or "video" in btn_text:
-                            # Check if it's the Type dropdown button (not other buttons)
-                            # Type dropdown usually appears first in the settings bar
+                        elif ("image" in btn_text or "video" in btn_text) and "search" not in btn_text and "similar" not in btn_text:
                             btn.click()
                             self.log(f"  🎨 Clicked type button: {btn_text}")
                             time.sleep(0.5)
                             break
                             
                     elif option_type == "aspect":
-                        # Look for aspect ratio buttons: 16:9, 9:16, 1:1, 3:2, 2:3
+                        # aria-label="Aspect ratio"
+                        if "aspect" in aria_label or "ratio" in aria_label:
+                            btn.click()
+                            self.log(f"  📐 Clicked aspect button (by aria): {aria_label}")
+                            time.sleep(0.5)
+                            break
+                        # Text check
                         if any(ratio in btn_text for ratio in ['16:9', '9:16', '1:1', '3:2', '2:3']):
                             btn.click()
                             self.log(f"  📐 Clicked aspect button: {btn_text}")
@@ -628,7 +655,13 @@ class SoraAutomationService:
                             break
                             
                     elif option_type == "resolution":
-                        # Look for resolution buttons: 1080p, 720p, 480p, 360p
+                        # aria-label="Resolution" or "Quality"
+                        if "resolution" in aria_label or "quality" in aria_label:
+                            btn.click()
+                            self.log(f"  📺 Clicked resolution button (by aria): {aria_label}")
+                            time.sleep(0.5)
+                            break
+                        # Text check
                         if any(res in btn_text for res in ['1080', '720', '480', '360']):
                             btn.click()
                             self.log(f"  📺 Clicked resolution button: {btn_text}")
@@ -636,20 +669,37 @@ class SoraAutomationService:
                             break
                             
                     elif option_type == "duration":
-                        # Look for duration: 5s, 10s, 15s, 20s (must have number + s)
-                        if 's' in btn_text and any(d in btn_text for d in ['5', '10', '15', '20']):
+                        # aria-label="Duration"
+                        if "duration" in aria_label:
+                            btn.click()
+                            self.log(f"  ⏱️ Clicked duration button (by aria): {aria_label}")
+                            time.sleep(0.5)
+                            break
+                        # Text check: ensure it has 's' AND a number, AND NO 'v' (to avoid confusion)
+                        if 's' in btn_text and 'v' not in btn_text and any(d in btn_text for d in ['5', '10', '15', '20']):
                             btn.click()
                             self.log(f"  ⏱️ Clicked duration button: {btn_text}")
                             time.sleep(0.5)
                             break
                             
                     elif option_type == "variations":
-                        # Look for variations: 1v, 2v, 4v or "video"
-                        if 'v' in btn_text and any(c.isdigit() for c in btn_text):
+                        # aria-label="Variations" or "Video count"
+                        if "variation" in aria_label or "count" in aria_label:
+                             btn.click()
+                             self.log(f"  🎬 Clicked variations button (by aria): {aria_label}")
+                             time.sleep(0.5)
+                             break
+                        # Text check: 1v, 2v, 1 video... ensure NO 's' (unless "videos") to avoid Duration
+                        # Strict check for "v" format or "video" format
+                        if ('video' in btn_text and any(c.isdigit() for c in btn_text)) or \
+                           ('v' in btn_text and 's' not in btn_text and any(c.isdigit() for c in btn_text) and len(btn_text) < 5):
                             btn.click()
                             self.log(f"  🎬 Clicked variations button: {btn_text}")
                             time.sleep(0.5)
                             break
+                            
+                except Exception:
+                    continue
                             
                 except Exception:
                     continue
@@ -703,32 +753,53 @@ class SoraAutomationService:
             
             # Fallback: look for any clickable element with matching text
             try:
+                # Construct XPath to find text case-insensitive
                 if option_type == "type" and type_value:
-                    # For type, search specifically for Image or Video options
-                    elements = self.driver.find_elements(By.XPATH, 
-                        f"//*[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '{type_value}')]")
+                    # Specific handling for type to ensure we don't click wrong things
+                    # Using translate for case-insensitive matching
+                    xpath = f"//*[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '{type_value}')]"
+                    elements = self.driver.find_elements(By.XPATH, xpath)
+                elif option_type == "variations":
+                    # For variations, we might be looking for "2 videos" or "4 videos"
+                    # Also handle just the number if passed
+                    search_term = value_lower
+                    if search_term.isdigit():
+                        search_term = f"{search_term} video" # append ' video' if just a digit
+                    
+                    xpath = f"//*[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '{search_term}')]"
+                    elements = self.driver.find_elements(By.XPATH, xpath)
                 else:
-                    elements = self.driver.find_elements(By.XPATH, 
-                        f"//*[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '{value_lower}')]")
+                    xpath = f"//*[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '{value_lower}')]"
+                    elements = self.driver.find_elements(By.XPATH, xpath)
                 
                 for elem in elements:
                     if elem.is_displayed():
                         # Check it's in the dropdown area (popup)
                         location = elem.location
-                        if location.get('y', 0) > bottom_threshold - 200:  # Near bottom
-                            elem_text = elem.text.lower().strip()
-                            if option_type == "type" and type_value:
-                                # Verify it's actually Image or Video option
-                                if (type_value == "image" and ("image" in elem_text and "video" not in elem_text)) or \
-                                   (type_value == "video" and ("video" in elem_text and "image" not in elem_text)):
-                                    elem.click()
-                                    self.log(f"  ✓ Set {option_type}: {value}")
-                                    return True
-                            else:
+                        # Simple check: if y < bottom_threshold, it might be the dropdown menu which usually spawns ABOVE the bar
+                        # But some dropdowns might spawn differently. 
+                        # We just check if it's clickable and visible.
+                        
+                        elem_text = elem.text.lower().strip()
+                        
+                        if option_type == "type" and type_value:
+                             # Verify it's actually Image or Video option
+                            if (type_value == "image" and ("image" in elem_text and "video" not in elem_text)) or \
+                               (type_value == "video" and ("video" in elem_text and "image" not in elem_text)):
                                 elem.click()
-                                self.log(f"  ✓ Set {option_type}: {value}")
+                                self.log(f"  ✓ Set {option_type} (fallback): {value}")
                                 return True
-            except Exception:
+                        elif option_type == "variations":
+                             if value_lower in elem_text:
+                                elem.click()
+                                self.log(f"  ✓ Set {option_type} (fallback): {value}")
+                                return True
+                        else:
+                            elem.click()
+                            self.log(f"  ✓ Set {option_type} (fallback): {value}")
+                            return True
+            except Exception as e:
+                self.log(f"  ⚠️ Fallback selection failed: {e}")
                 pass
             
             return False
@@ -1076,8 +1147,9 @@ class SoraAutomationService:
                     continue
             
             # Method 2: Find download link directly
+            # Method 2: Find download link directly (Any video format)
             download_links = self.driver.find_elements(By.CSS_SELECTOR,
-                'a[download], a[href*=".mp4"], a[href*="download"]')
+                'a[download], a[href*=".mp4"], a[href*=".mov"], a[href*=".webm"], a[href*="download"]')
             
             for link in download_links:
                 if link.is_displayed():
@@ -1098,12 +1170,35 @@ class SoraAutomationService:
             # Method 4: Try to find video in network requests via page source
             page_source = self.driver.page_source
             import re
-            video_urls = re.findall(r'https?://[^\s"\']+\.mp4[^\s"\']*', page_source)
+            # Much broader regex for any common video format
+            video_urls = re.findall(r'https?://[^\s"\']+\.(?:mp4|mov|webm|mkv)[^\s"\']*', page_source)
             for url in video_urls:
                 if self._is_valid_video_url(url):
                     return self._download_from_url(url, output_path)
+
+            # Method 5: Check for generated IMAGE content (if video not found)
+            # Sora also generates images, which appear in <img> tags with specific sources
+            images = self.driver.find_elements(By.CSS_SELECTOR, 
+                'img[src*="videos.openai.com/api/vg-assets/"], img[src*="oaidalle"], img[class*="h-full w-full"]')
             
-            self.log("⚠️ Không tìm thấy link download hợp lệ")
+            for img in images:
+                try:
+                    if img.is_displayed():
+                        src = img.get_attribute('src')
+                        if src and src.startswith('http'):
+                            # Ensure output path has correct extension
+                            base, ext = os.path.splitext(output_path)
+                            if ext.lower() in ['.mp4', '.mov', '.webm', '.mkv']:
+                                # Switch extension to .png for images
+                                image_path = f"{base}.png"
+                                self.log(f"🖼️ Detected Image content. Switching extension: {output_path} -> {image_path}")
+                                return self._download_from_url(src, image_path)
+                            else:
+                                return self._download_from_url(src, output_path)
+                except Exception:
+                    continue
+            
+            self.log("⚠️ Không tìm thấy link download hợp lệ (Video hoặc Image)")
             return False
             
         except Exception as e:
@@ -1200,24 +1295,11 @@ class SoraAutomationService:
     
     # ==================== MAIN WORKFLOW ====================
     
-    def generate_video(self, prompt: str, image_path: str = "", output_path: str = "",
+    def generate_video(self, prompt: str, image_paths: List[str] = None, output_path: str = "",
                        type: str = None, aspect_ratio: str = None, resolution: str = None,
                        duration: str = None, variations: int = None,
                        timeout: int = 300) -> bool:
-        """
-        Full workflow: upload image -> configure settings -> enter prompt -> generate -> download
-        
-        Args:
-            prompt: Text prompt for video generation
-            image_path: Optional reference image path
-            output_path: Where to save the video
-            type: "image" or "video" (media type)
-            aspect_ratio: "16:9", "3:2", "1:1", "2:3", "9:16"
-            resolution: "1080p", "720p", "480p"
-            duration: "20s", "15s", "10s", "5s"
-            variations: 4, 2, 1
-            timeout: Max wait time for generation
-        """
+    
         # Step 1: Navigate
         if not self.navigate_to_create():
             return False
@@ -1235,11 +1317,13 @@ class SoraAutomationService:
             )
             time.sleep(1)
         
-        # Step 3: Upload image (if provided)
-        if image_path:
-            if not self.upload_image(image_path):
-                self.log("⚠️ Upload ảnh thất bại, tiếp tục không có ảnh")
-            time.sleep(1)
+        # Step 3: Upload images (if provided)
+        if image_paths:
+            for img_path in image_paths:
+                if img_path:
+                    if not self.upload_image(img_path):
+                        self.log(f"⚠️ Upload ảnh thất bại ({os.path.basename(img_path)}), tiếp tục...")
+                    time.sleep(1)
         
         # Step 4: Enter prompt
         if not self.enter_prompt(prompt):
@@ -1293,7 +1377,7 @@ class SoraAutomationService:
             # Run the main workflow with video settings
             success = self.generate_video(
                 prompt=row.prompt,
-                image_path=row.image_path or "",
+                image_paths=getattr(row, 'image_paths', []) or ([row.image_path] if hasattr(row, 'image_path') and row.image_path else []),
                 output_path=output_path,
                 type=getattr(row, 'type', None),
                 aspect_ratio=getattr(row, 'aspect_ratio', None),

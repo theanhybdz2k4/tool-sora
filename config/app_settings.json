@@ -4,7 +4,7 @@
   "wait_timeout_seconds": 300,
   "auto_download": true,
   "download_format": "mp4",
-  "default_aspect_ratio": "16:9",
+  "default_aspect_ratio": "3:2",
   "default_duration": "5s",
   "check_interval_seconds": 10,
   "sheet_url": "",
@@ -13,5 +13,6 @@
   "image_folder": "C:\\Projects\\Tool Auto Veo AI\\python-tool-sora\\Image",
   "output_folder": "C:/Projects/Tool Auto Veo AI/python-tool-sora/Output/Test",
   "default_resolution": "480p",
-  "default_variations": "1"
+  "default_variations": "1",
+  "default_type": "image"
 }

@@ -49,8 +49,11 @@ class BrowserCore:
         
         # User data directory for persistent sessions
         if self.cache_dir:
-            os.makedirs(self.cache_dir, exist_ok=True)
-            options.add_argument(f"--user-data-dir={self.cache_dir}")
+            # IMPORTANT: Use abspath to handle paths with spaces correctly
+            abs_cache_dir = os.path.abspath(self.cache_dir)
+            os.makedirs(abs_cache_dir, exist_ok=True)
+            options.add_argument(f"--user-data-dir={abs_cache_dir}")
+            self.log(f"📂 User Data Dir: {abs_cache_dir}")
             
         # Common options
         if not self.headless:
@@ -69,8 +72,8 @@ class BrowserCore:
         
         if self.headless:
             options.add_argument("--headless=new")
-            # Thêm user agent cho headless mode
-            options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+            # IMPORTANT: Must mask HeadlessChrome to avoid detection
+            options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36") 
             
         # Language
         options.add_argument("--lang=vi")
