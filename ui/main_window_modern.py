@@ -390,13 +390,33 @@ class SoraToolModernApp:
         settings_row1 = ctk.CTkFrame(settings_card, fg_color="transparent")
         settings_row1.grid(row=1, column=0, columnspan=4, sticky="ew", padx=20, pady=10)
         
+        # Type
+        ctk.CTkLabel(
+            settings_row1,
+            text="Type:",
+            font=("Segoe UI", 12),
+            text_color=ModernColors.TEXT_SECONDARY
+        ).pack(side="left", padx=(0, 10))
+        
+        self.type_var = tk.StringVar(value="Video")
+        ctk.CTkComboBox(
+            settings_row1,
+            variable=self.type_var,
+            values=["Video", "Image"],
+            width=120,
+            height=35,
+            font=("Segoe UI", 11),
+            fg_color=ModernColors.BG_SECONDARY,
+            border_color=ModernColors.BORDER,
+        ).pack(side="left", padx=10)
+        
         # Aspect Ratio
         ctk.CTkLabel(
             settings_row1,
             text="Aspect Ratio:",
             font=("Segoe UI", 12),
             text_color=ModernColors.TEXT_SECONDARY
-        ).pack(side="left", padx=(0, 10))
+        ).pack(side="left", padx=(30, 10))
         
         self.aspect_var = tk.StringVar(value="9:16")
         ctk.CTkComboBox(
@@ -817,7 +837,15 @@ class SoraToolModernApp:
     def _load_excel(self, filepath):
         """Load tasks from Excel"""
         try:
-            service = ExcelService(log_callback=self._log)
+            # Get output_dir and image_dir from settings
+            output_dir = self.settings.get("output_folder", str(DOWNLOADS_DIR))
+            image_dir = self.settings.get("image_folder", str(BASE_DIR / "Image"))
+            
+            service = ExcelService(
+                log_callback=self._log,
+                image_dir=image_dir,
+                output_dir=output_dir
+            )
             if service.load(filepath):
                 self.tasks = service.read_worksheet(skip_completed=True)
                 self.task_count_label.configure(
@@ -831,15 +859,25 @@ class SoraToolModernApp:
             
     def _download_template(self):
         """Download Excel template"""
+        # Lưu vào thư mục Downloads hoặc thư mục hiện tại
+        import os
+        from pathlib import Path
+        
+        # Lấy thư mục Downloads
+        downloads_dir = Path.home() / "Downloads"
+        if not downloads_dir.exists():
+            downloads_dir = Path.cwd()  # Fallback về thư mục hiện tại
+        
         filepath = filedialog.asksaveasfilename(
             title="Lưu Template",
             defaultextension=".xlsx",
+            initialdir=str(downloads_dir),  # Mở ở thư mục Downloads
             initialname="sora_template.xlsx",
             filetypes=[("Excel Files", "*.xlsx")]
         )
         if filepath:
             create_template_excel(filepath)
-            messagebox.showinfo("Thành công", f"Đã lưu template: {filepath}")
+            messagebox.showinfo("Thành công", f"Đã lưu template:\n{filepath}")
             self._log(f"📥 Đã tải template: {filepath}")
             
     def _load_tasks(self):

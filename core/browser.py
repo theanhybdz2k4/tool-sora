@@ -53,7 +53,12 @@ class BrowserCore:
             options.add_argument(f"--user-data-dir={self.cache_dir}")
             
         # Common options
-        options.add_argument("--start-maximized")
+        if not self.headless:
+            options.add_argument("--start-maximized")
+        else:
+            # Headless mode cần window size cụ thể
+            options.add_argument("--window-size=1920,1080")
+        
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument("--disable-infobars")
         options.add_argument("--disable-dev-shm-usage")
@@ -64,6 +69,8 @@ class BrowserCore:
         
         if self.headless:
             options.add_argument("--headless=new")
+            # Thêm user agent cho headless mode
+            options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
             
         # Language
         options.add_argument("--lang=vi")
@@ -77,6 +84,10 @@ class BrowserCore:
         try:
             service = Service(ChromeDriverManager().install())
             driver = webdriver.Chrome(service=service, options=options)
+            
+            # Set window size nếu headless (đảm bảo window size được set)
+            if self.headless:
+                driver.set_window_size(1920, 1080)
             
             # Remove webdriver flag
             driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {

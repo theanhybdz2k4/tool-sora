@@ -29,6 +29,7 @@ class SheetRow:
         output_path: str = "",
         presets: str = "",
         status: str = "",
+        type: str = "video",
         aspect_ratio: str = "16:9",
         duration: str = "10s",
         resolution: str = "480p",
@@ -44,6 +45,7 @@ class SheetRow:
         self.output_path = output_path
         self.presets = presets
         self.status = status
+        self.type = type.lower() if type else "video"  # Normalize to lowercase
         self.aspect_ratio = aspect_ratio
         self.duration = duration
         self.resolution = resolution
@@ -61,6 +63,7 @@ class SheetRow:
             "output_path": self.output_path,
             "presets": self.presets,
             "status": self.status,
+            "type": self.type,
             "aspect_ratio": self.aspect_ratio,
             "duration": self.duration,
             "resolution": self.resolution,
@@ -82,6 +85,7 @@ class GoogleSheetsService:
         "output_path": ["path", "output_path", "folder", "thư mục"],
         "presets": ["presets", "preset", "settings", "cài đặt"],
         "status": ["status", "trạng thái", "state"],
+        "type": ["type", "media_type", "loại", "media"],
         "aspect_ratio": ["aspect", "aspect_ratio", "ratio", "tỷ lệ", "size"],
         "duration": ["duration", "time", "length", "thời lượng"],
         "resolution": ["resolution", "quality", "res", "độ phân giải"],
@@ -194,6 +198,7 @@ class GoogleSheetsService:
                     output_path=row_data[header_map.get("output_path", -1)] if "output_path" in header_map else "",
                     presets=row_data[header_map.get("presets", -1)] if "presets" in header_map else "",
                     status=status,
+                    type=row_data[header_map.get("type", -1)] if "type" in header_map and header_map.get("type", -1) >= 0 and header_map.get("type", -1) < len(row_data) else "video",
                     aspect_ratio=row_data[header_map.get("aspect_ratio", -1)] if "aspect_ratio" in header_map else "16:9",
                     duration=row_data[header_map.get("duration", -1)] if "duration" in header_map else "5s",
                     model=row_data[header_map.get("model", -1)] if "model" in header_map else "",
@@ -331,30 +336,35 @@ class ExcelService:
                 # Get base values
                 image_name = get_val("image_path")
                 save_name = get_val("save_name")
-                output_path_val = get_val("output_path")
+                # Note: output_path column không còn được sử dụng, chỉ dùng save_name + output_dir từ settings
                 
                 # Resolve image path if image_dir is set
                 image_path = image_name
                 if image_name and self.image_dir:
                     image_path = self._find_image(image_name)
                 
-                # Resolve output path
-                output_path = output_path_val
+                # Resolve output path - đơn giản hóa: chỉ dùng save_name và output_dir từ settings
                 if save_name:
-                    if output_path_val:
-                        output_dir = Path(output_path_val)
-                    elif self.output_dir:
+                    # Có save_name: dùng output_dir từ settings + save_name
+                    if self.output_dir:
                         output_dir = self.output_dir
                     else:
                         from config.settings import DOWNLOADS_DIR
                         output_dir = Path(DOWNLOADS_DIR)
                     
                     output_dir.mkdir(parents=True, exist_ok=True)
-                    output_path = str(output_dir / f"{save_name}.mp4")
-                elif output_path_val:
-                    output_path = output_path_val
-                elif self.output_dir:
-                    output_path = str(self.output_dir / f"video_{get_val('stt') or i-1}.mp4")
+                    save_name_with_ext = save_name if save_name.lower().endswith('.mp4') else f"{save_name}.mp4"
+                    output_path = str(output_dir / save_name_with_ext)
+                else:
+                    # Không có save_name: tạo tên file tự động
+                    if self.output_dir:
+                        output_dir = self.output_dir
+                    else:
+                        from config.settings import DOWNLOADS_DIR
+                        output_dir = Path(DOWNLOADS_DIR)
+                    
+                    output_dir.mkdir(parents=True, exist_ok=True)
+                    output_path = str(output_dir / f"video_{get_val('stt') or i-1}.mp4")
                 
                 row = SheetRow(
                     row_index=i,
@@ -365,6 +375,7 @@ class ExcelService:
                     output_path=output_path,
                     presets=get_val("presets"),
                     status=status,
+                    type=get_val("type") or "video",
                     aspect_ratio=get_val("aspect_ratio") or "16:9",
                     duration=get_val("duration") or "10s",
                     resolution=get_val("resolution") or "480p",
@@ -453,15 +464,15 @@ def create_template_excel(filepath: str):
     # Headers
     headers = [
         "STT", "PROMPT", "IMAGE", "SAVENAME", "PATH", 
-        "ASPECT_RATIO", "DURATION", "RESOLUTION", "VARIATIONS", "MODEL", "PRESETS", "STATUS"
+        "TYPE", "ASPECT_RATIO", "DURATION", "RESOLUTION", "VARIATIONS", "MODEL", "PRESETS", "STATUS"
     ]
     for col, header in enumerate(headers, start=1):
         ws.cell(row=1, column=col, value=header)
         
     # Sample rows
     sample_data = [
-        ["1", "A cinematic shot of a sunrise over mountains", "", "sunrise_video", "C:/Videos/Output", "16:9", "10s", "480p", "1", "", "", ""],
-        ["2", "Close-up of coffee being poured into a cup", "", "coffee_pour", "C:/Videos/Output", "9:16", "5s", "720p", "2", "", "", ""],
+        ["1", "A cinematic shot of a sunrise over mountains", "", "sunrise_video", "C:/Videos/Output", "video", "16:9", "10s", "480p", "1", "", "", ""],
+        ["2", "Close-up of coffee being poured into a cup", "", "coffee_pour", "C:/Videos/Output", "video", "9:16", "5s", "720p", "2", "", "", ""],
     ]
     
     for row_idx, row_data in enumerate(sample_data, start=2):

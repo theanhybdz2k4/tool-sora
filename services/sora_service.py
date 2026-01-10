@@ -518,12 +518,13 @@ class SoraAutomationService:
     
     # ==================== VIDEO SETTINGS ====================
     
-    def configure_video_settings(self, aspect_ratio: str = None, resolution: str = None, 
+    def configure_video_settings(self, type: str = None, aspect_ratio: str = None, resolution: str = None, 
                                   duration: str = None, variations: int = None) -> bool:
         """
         Configure video settings before generating.
         
         Args:
+            type: "image" or "video" (media type)
             aspect_ratio: "16:9", "3:2", "1:1", "2:3", "9:16"
             resolution: "1080p", "720p", "480p"
             duration: "20s", "15s", "10s", "5s" or "20", "15", "10", "5"
@@ -532,6 +533,11 @@ class SoraAutomationService:
         self.log("⚙️ Đang cấu hình video settings...")
         
         try:
+            # Type (must be configured FIRST)
+            if type:
+                self._set_dropdown_option(type, "type")
+                time.sleep(0.5)
+            
             # Aspect Ratio
             if aspect_ratio:
                 self._set_dropdown_option(aspect_ratio, "aspect")
@@ -596,7 +602,24 @@ class SoraAutomationService:
                 try:
                     btn_text = btn.text.lower().strip()
                     
-                    if option_type == "aspect":
+                    if option_type == "type":
+                        # Look for Type buttons: Image or Video
+                        # The Type dropdown is usually at the top of the settings bar
+                        if btn_text == "image" or btn_text == "video":
+                            btn.click()
+                            self.log(f"  🎨 Clicked type button: {btn_text}")
+                            time.sleep(0.5)
+                            break
+                        # Also check for buttons with "Image" or "Video" text
+                        elif "image" in btn_text or "video" in btn_text:
+                            # Check if it's the Type dropdown button (not other buttons)
+                            # Type dropdown usually appears first in the settings bar
+                            btn.click()
+                            self.log(f"  🎨 Clicked type button: {btn_text}")
+                            time.sleep(0.5)
+                            break
+                            
+                    elif option_type == "aspect":
                         # Look for aspect ratio buttons: 16:9, 9:16, 1:1, 3:2, 2:3
                         if any(ratio in btn_text for ratio in ['16:9', '9:16', '1:1', '3:2', '2:3']):
                             btn.click()
@@ -637,6 +660,21 @@ class SoraAutomationService:
             # Look for dropdown options that match the value
             value_lower = value.lower()
             
+            # Special handling for type option - normalize value
+            type_value = None
+            if option_type == "type":
+                # Normalize value: "image" or "video"
+                type_value = value_lower.strip()
+                if type_value not in ["image", "video"]:
+                    # Try to extract from value if it contains the word
+                    if "image" in type_value:
+                        type_value = "image"
+                    elif "video" in type_value:
+                        type_value = "video"
+                    else:
+                        self.log(f"  ⚠️ Invalid type value: {value}")
+                        return False
+            
             # Try role-based selectors first (more specific)
             dropdown_items = self.driver.find_elements(By.CSS_SELECTOR, 
                 '[role="option"], [role="menuitem"], [role="menuitemradio"]')
@@ -644,27 +682,52 @@ class SoraAutomationService:
             for item in dropdown_items:
                 try:
                     item_text = item.text.lower().strip()
-                    if value_lower in item_text or item_text in value_lower:
-                        if item.is_displayed():
-                            item.click()
-                            self.log(f"  ✓ Set {option_type}: {value}")
-                            time.sleep(0.3)
-                            return True
+                    if option_type == "type":
+                        # For type, match exactly "image" or "video"
+                        if item_text == type_value or (type_value == "image" and "image" in item_text) or (type_value == "video" and "video" in item_text):
+                            if item.is_displayed():
+                                item.click()
+                                self.log(f"  ✓ Set {option_type}: {value}")
+                                time.sleep(0.3)
+                                return True
+                    else:
+                        # For other options, use existing logic
+                        if value_lower in item_text or item_text in value_lower:
+                            if item.is_displayed():
+                                item.click()
+                                self.log(f"  ✓ Set {option_type}: {value}")
+                                time.sleep(0.3)
+                                return True
                 except Exception:
                     continue
             
             # Fallback: look for any clickable element with matching text
             try:
-                elements = self.driver.find_elements(By.XPATH, 
-                    f"//*[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '{value_lower}')]")
+                if option_type == "type" and type_value:
+                    # For type, search specifically for Image or Video options
+                    elements = self.driver.find_elements(By.XPATH, 
+                        f"//*[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '{type_value}')]")
+                else:
+                    elements = self.driver.find_elements(By.XPATH, 
+                        f"//*[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '{value_lower}')]")
+                
                 for elem in elements:
                     if elem.is_displayed():
                         # Check it's in the dropdown area (popup)
                         location = elem.location
                         if location.get('y', 0) > bottom_threshold - 200:  # Near bottom
-                            elem.click()
-                            self.log(f"  ✓ Set {option_type}: {value}")
-                            return True
+                            elem_text = elem.text.lower().strip()
+                            if option_type == "type" and type_value:
+                                # Verify it's actually Image or Video option
+                                if (type_value == "image" and ("image" in elem_text and "video" not in elem_text)) or \
+                                   (type_value == "video" and ("video" in elem_text and "image" not in elem_text)):
+                                    elem.click()
+                                    self.log(f"  ✓ Set {option_type}: {value}")
+                                    return True
+                            else:
+                                elem.click()
+                                self.log(f"  ✓ Set {option_type}: {value}")
+                                return True
             except Exception:
                 pass
             
@@ -701,24 +764,27 @@ class SoraAutomationService:
         self.log(f"📊 Số video hiện có: {initial_count}")
         
         last_count = initial_count
-        stable_count = 0  # Track how long count has been stable
+        refresh_interval = 5 # Refresh every 5 seconds 
+        last_refresh_time = time.time() - refresh_interval 
         
         while time.time() - start_time < timeout:
             try:
                 elapsed = int(time.time() - start_time)
+                current_time = time.time()
                 
-                # Refresh page every 15 seconds to check progress
-                if elapsed > 0 and elapsed % 15 == 0:
+                # Refresh page every 5 seconds to check progress
+                if current_time - last_refresh_time >= refresh_interval:
                     self.log(f"⏳ Đã chờ {elapsed}s... Refreshing...")
                     self.driver.refresh()
-                    time.sleep(3)
+                    time.sleep(2)  # Wait for page to load
+                    last_refresh_time = time.time()  # Update after refresh completes
                 
                 # Check notification bell for completion indicator
                 if self._check_notification_bell():
                     self.log("🔔 Notification bell có badge - video đã xong!")
-                    time.sleep(2)
+                    time.sleep(1)
                     self.driver.refresh()
-                    time.sleep(3)
+                    time.sleep(2)
                     self._click_first_video()
                     return True
                 
@@ -728,20 +794,20 @@ class SoraAutomationService:
                 if current_count > initial_count:
                     # New video appeared!
                     self.log(f"✅ Video mới xuất hiện! ({initial_count} → {current_count})")
-                    time.sleep(2)
+                    time.sleep(1)
                     
                     # Click on first video to open it
                     self._click_first_video()
                     return True
                 
-                # Log progress periodically
+                # Log progress periodically (every 30 seconds)
                 if elapsed > 0 and elapsed % 30 == 0:
                     self.log(f"⏳ Đang chờ video... ({current_count} video trong library)")
                 
             except Exception as e:
                 self.log(f"⚠️ Check error: {e}")
             
-            time.sleep(5)
+            time.sleep(2)  # Check every 2 seconds
         
         self.log("⏰ Timeout - video chưa hoàn thành")
         return False
@@ -749,12 +815,62 @@ class SoraAutomationService:
     def _count_video_items(self) -> int:
         """Count number of video items on library page"""
         try:
-            # Find all video items in library
-            items = self.driver.find_elements(By.CSS_SELECTOR,
-                '[class*="media"] img, [class*="video"] img, video')
-            visible_count = sum(1 for item in items if item.is_displayed())
-            return visible_count
-        except Exception:
+            # Method 1: Tìm các link đến video (href chứa /g/gen_ hoặc /library)
+            video_links = self.driver.find_elements(By.CSS_SELECTOR,
+                'a[href*="/g/gen_"], a[href*="/library"]')
+            
+            # Method 2: Tìm các thumbnail images (có src chứa videos.openai.com)
+            video_thumbnails = self.driver.find_elements(By.CSS_SELECTOR,
+                'img[src*="videos.openai.com"], img[src*="vg-assets"]')
+            
+            # Method 3: Tìm các tile/container chứa video
+            video_tiles = self.driver.find_elements(By.CSS_SELECTOR,
+                '[class*="tile"], [class*="group/tile"], [data-index]')
+            
+            # Lấy số lượng lớn nhất từ các method (để đảm bảo đếm đúng)
+            counts = []
+            
+            # Đếm video links (loại bỏ duplicate)
+            unique_links = set()
+            for link in video_links:
+                try:
+                    if link.is_displayed():
+                        href = link.get_attribute('href')
+                        if href and ('/g/gen_' in href or '/library' in href):
+                            unique_links.add(href)
+                except:
+                    continue
+            counts.append(len(unique_links))
+            
+            # Đếm thumbnails
+            visible_thumbnails = sum(1 for thumb in video_thumbnails 
+                                   if thumb.is_displayed() and 
+                                   ('videos.openai.com' in thumb.get_attribute('src') or 
+                                    'vg-assets' in thumb.get_attribute('src')))
+            counts.append(visible_thumbnails)
+            
+            # Đếm tiles có chứa video (có img hoặc link bên trong)
+            video_tile_count = 0
+            for tile in video_tiles:
+                try:
+                    if tile.is_displayed():
+                        # Kiểm tra xem tile có chứa video thumbnail không
+                        imgs = tile.find_elements(By.CSS_SELECTOR, 
+                            'img[src*="videos.openai.com"], img[src*="vg-assets"]')
+                        links = tile.find_elements(By.CSS_SELECTOR,
+                            'a[href*="/g/gen_"]')
+                        if imgs or links:
+                            video_tile_count += 1
+                except:
+                    continue
+            counts.append(video_tile_count)
+            
+            # Trả về số lượng lớn nhất (để đảm bảo không bỏ sót)
+            result = max(counts) if counts else 0
+            return result
+            
+        except Exception as e:
+            self.log(f"⚠️ Lỗi đếm video: {e}")
             return 0
     
     def _check_notification_bell(self) -> bool:
@@ -822,23 +938,64 @@ class SoraAutomationService:
             return False
     
     def _click_first_video(self):
-        """Click on the first/newest video in library"""
+        """Click on the first/newest video in library (newest videos appear first)"""
         try:
-            # Find clickable video items
-            video_items = self.driver.find_elements(By.CSS_SELECTOR,
-                '[class*="media"], [class*="item"]')
+            # Wait a bit for page to fully load
+            time.sleep(2)
             
-            for item in video_items[:5]:
+            # Find clickable video items - try multiple selectors
+            video_items = []
+            
+            # Method 1: Look for video grid items
+            items1 = self.driver.find_elements(By.CSS_SELECTOR,
+                '[class*="media"], [class*="item"], [class*="card"], [class*="thumbnail"]')
+            video_items.extend(items1)
+            
+            # Method 2: Look for elements containing video/img
+            items2 = self.driver.find_elements(By.CSS_SELECTOR,
+                'a[href*="/library"], a[href*="/video"]')
+            video_items.extend(items2)
+            
+            # Remove duplicates and filter visible items
+            seen = set()
+            visible_items = []
+            for item in video_items:
                 try:
-                    if item.is_displayed():
+                    item_id = id(item)
+                    if item_id not in seen and item.is_displayed():
+                        seen.add(item_id)
+                        # Check if it has image/video content
                         imgs = item.find_elements(By.CSS_SELECTOR, 'img, video')
                         if imgs:
-                            item.click()
-                            self.log("📹 Mở video để download...")
-                            time.sleep(3)
-                            return
+                            visible_items.append(item)
                 except Exception:
                     continue
+            
+            if not visible_items:
+                self.log("⚠️ Không tìm thấy video items")
+                return
+            
+            # Click the first item (newest video is usually first)
+            first_item = visible_items[0]
+            try:
+                # Scroll into view first
+                self.driver.execute_script(
+                    "arguments[0].scrollIntoView({block: 'center', behavior: 'smooth'});", 
+                    first_item)
+                time.sleep(0.5)
+                
+                # Try clicking with JavaScript if normal click fails
+                try:
+                    first_item.click()
+                except Exception:
+                    self.driver.execute_script("arguments[0].click();", first_item)
+                
+                self.log("📹 Mở video mới nhất để download...")
+                time.sleep(3)
+                return
+            except Exception as e:
+                self.log(f"⚠️ Không thể click video đầu tiên: {e}")
+                
         except Exception as e:
             self.log(f"⚠️ Không thể click video: {e}")
     
@@ -855,13 +1012,17 @@ class SoraAutomationService:
         """
         self.log(f"📥 Đang download video...")
         
+        # Log output path for debugging
+        self.log(f"📂 Output path: {output_path}")
+        
         # Ensure output directory exists
         try:
             output_dir = os.path.dirname(output_path)
             if output_dir:
                 os.makedirs(output_dir, exist_ok=True)
-        except Exception:
-            pass
+                self.log(f"✅ Đã tạo/kiểm tra thư mục: {output_dir}")
+        except Exception as e:
+            self.log(f"⚠️ Lỗi tạo thư mục: {e}")
         
         time.sleep(2)
         
@@ -973,6 +1134,16 @@ class SoraAutomationService:
         try:
             self.log(f"📥 Downloading từ: {url[:60]}...")
             
+            # Ensure output directory exists
+            output_dir = os.path.dirname(output_path)
+            if output_dir:
+                os.makedirs(output_dir, exist_ok=True)
+                self.log(f"📂 Đảm bảo thư mục tồn tại: {output_dir}")
+            
+            # Normalize path (handle Windows path issues)
+            output_path = str(Path(output_path).resolve())
+            self.log(f"💾 Lưu file tại: {output_path}")
+            
             # Get cookies from browser
             cookies = {}
             for cookie in self.driver.get_cookies():
@@ -981,21 +1152,56 @@ class SoraAutomationService:
             response = requests.get(url, cookies=cookies, stream=True, timeout=120)
             response.raise_for_status()
             
+            # Get content length for validation
+            content_length = response.headers.get('Content-Length')
+            if content_length:
+                expected_size = int(content_length)
+                self.log(f"📊 Kích thước file: {expected_size / 1024 / 1024:.2f} MB")
+            
+            # Download file
+            downloaded_size = 0
             with open(output_path, 'wb') as f:
                 for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
+                    if chunk:
+                        f.write(chunk)
+                        downloaded_size += len(chunk)
             
-            self.log(f"✅ Đã lưu: {output_path}")
-            return True
+            # Validate file was saved correctly
+            if os.path.exists(output_path):
+                actual_size = os.path.getsize(output_path)
+                self.log(f"✅ Đã lưu file: {output_path}")
+                self.log(f"📊 Kích thước thực tế: {actual_size / 1024 / 1024:.2f} MB")
+                
+                # Check if file size is reasonable (at least 1KB)
+                if actual_size < 1024:
+                    self.log(f"⚠️ File quá nhỏ ({actual_size} bytes), có thể download không thành công")
+                    return False
+                
+                # If we know expected size, validate it
+                if content_length and abs(actual_size - expected_size) > 1024:
+                    self.log(f"⚠️ Kích thước file không khớp (expected: {expected_size}, actual: {actual_size})")
+                    return False
+                
+                return True
+            else:
+                self.log(f"❌ File không tồn tại sau khi download: {output_path}")
+                return False
             
         except Exception as e:
             self.log(f"❌ Download failed: {e}")
+            # Clean up partial file if exists
+            if os.path.exists(output_path):
+                try:
+                    os.remove(output_path)
+                    self.log(f"🗑️ Đã xóa file không hoàn chỉnh")
+                except Exception:
+                    pass
             return False
     
     # ==================== MAIN WORKFLOW ====================
     
     def generate_video(self, prompt: str, image_path: str = "", output_path: str = "",
-                       aspect_ratio: str = None, resolution: str = None,
+                       type: str = None, aspect_ratio: str = None, resolution: str = None,
                        duration: str = None, variations: int = None,
                        timeout: int = 300) -> bool:
         """
@@ -1005,6 +1211,7 @@ class SoraAutomationService:
             prompt: Text prompt for video generation
             image_path: Optional reference image path
             output_path: Where to save the video
+            type: "image" or "video" (media type)
             aspect_ratio: "16:9", "3:2", "1:1", "2:3", "9:16"
             resolution: "1080p", "720p", "480p"
             duration: "20s", "15s", "10s", "5s"
@@ -1017,8 +1224,10 @@ class SoraAutomationService:
         time.sleep(2)
         
         # Step 2: Configure video settings FIRST (before any input)
-        if any([aspect_ratio, resolution, duration, variations]):
+        # Type must be configured first, then other settings
+        if any([type, aspect_ratio, resolution, duration, variations]):
             self.configure_video_settings(
+                type=type,
                 aspect_ratio=aspect_ratio,
                 resolution=resolution,
                 duration=duration,
@@ -1067,20 +1276,26 @@ class SoraAutomationService:
         try:
             self.log(f"📋 Processing: {row.stt} - {row.prompt[:50]}...")
             
-            # Determine output file path
+            # Determine output file path - đơn giản hóa: dùng trực tiếp row.output_path nếu có
+            # (đã được xử lý đầy đủ trong sheets_service.py)
             output_path = ""
-            if row.output_path and row.save_name:
-                output_path = os.path.join(row.output_path, row.save_name)
-                if not output_path.endswith('.mp4'):
-                    output_path += '.mp4'
-            elif row.output_path:
-                output_path = os.path.join(row.output_path, f"sora_{row.stt}_{int(time.time())}.mp4")
+            if row.output_path:
+                # output_path đã được xử lý đầy đủ trong sheets_service.py, dùng trực tiếp
+                output_path = row.output_path
+            elif row.save_name:
+                # Fallback: nếu không có output_path, tạo từ download_dir và save_name
+                save_name_with_ext = row.save_name if row.save_name.lower().endswith('.mp4') else f"{row.save_name}.mp4"
+                output_path = str(Path(self.download_dir) / save_name_with_ext)
+            else:
+                # Fallback: tạo tên file tự động
+                output_path = str(Path(self.download_dir) / f"sora_{row.stt}_{int(time.time())}.mp4")
             
             # Run the main workflow with video settings
             success = self.generate_video(
                 prompt=row.prompt,
                 image_path=row.image_path or "",
                 output_path=output_path,
+                type=getattr(row, 'type', None),
                 aspect_ratio=getattr(row, 'aspect_ratio', None),
                 resolution=getattr(row, 'resolution', None),
                 duration=getattr(row, 'duration', None),
