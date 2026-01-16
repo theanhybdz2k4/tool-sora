@@ -1,3 +1,2 @@
-2026/01/16-07:38:54.033 4008 Reusing MANIFEST C:\Projects\Tool Auto Veo AI\tool-sora\data\profiles\sora01\Default\shared_proto_db\metadata/MANIFEST-000001
-2026/01/16-07:38:54.034 4008 Recovering log #3
-2026/01/16-07:38:54.034 4008 Reusing old log C:\Projects\Tool Auto Veo AI\tool-sora\data\profiles\sora01\Default\shared_proto_db\metadata/000003.log 
+2026/01/16-09:44:23.137 1b3c Creating DB C:\Projects\Tool Auto Veo AI\tool-sora\data\profiles\sora01\Default\shared_proto_db\metadata since it was missing.
+2026/01/16-09:44:23.214 1b3c Reusing MANIFEST C:\Projects\Tool Auto Veo AI\tool-sora\data\profiles\sora01\Default\shared_proto_db\metadata/MANIFEST-000001

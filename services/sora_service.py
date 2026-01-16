@@ -950,18 +950,16 @@ class SoraAutomationService:
             self.log(f"⚠️ Không thể set {option_type}: {e}")
             return False
     
-    def wait_for_generation(self, timeout: int = 300) -> bool:
+    def wait_for_generation(self, prompt: str = None, timeout: int = 300, expected_count: int = 1) -> bool:
         """
-        Wait for video generation to complete on Library page.
+        Wait for generation to complete based on item count or prompt matching.
         
-        Strategy:
-        1. Navigate to /library 
-        2. Look for video items that are LOADING (have spinner/progress indicator)
-        3. Wait until loading finishes (spinner disappears)
-        4. Click on the completed video to open it
-        5. Store the video URL for download
+        Args:
+            prompt: Prompt content to verify correctness (optional)
+            timeout: Max wait time in seconds
+            expected_count: Number of variations expected to find (default 1)
         """
-        self.log(f"⏳ Đang chờ tạo video... (timeout: {timeout}s)")
+        self.log(f"⏳ Đang chờ tạo kết quả... (timeout: {timeout}s, expected: {expected_count} items)")
         start_time = time.time()
         
         # Wait for submission to process
@@ -972,9 +970,17 @@ class SoraAutomationService:
         self.driver.get(f"{self.BASE_URL}/library")
         time.sleep(3)
         
-        # Count initial video items
+        # Snapshot current item IDs to identify NEW items uniquely
+        initial_ids = set()
+        try:
+            # Look for both Success (/g/gen_) and Failed (/t/task_) items
+            link_elements = self.driver.find_elements(By.CSS_SELECTOR, 'a[href*="/g/gen_"], a[href*="/t/task_"]')
+            initial_ids = {el.get_attribute('href') for el in link_elements if el.get_attribute('href')}
+        except: pass
+        
+        # Count initial items
         initial_count = self._count_video_items()
-        self.log(f"📊 Số video hiện có: {initial_count}")
+        self.log(f"📊 Số item hiện có: {initial_count}")
         
         last_count = initial_count
         refresh_interval = 15  # Refresh every 15 seconds to avoid Cloudflare
@@ -985,46 +991,301 @@ class SoraAutomationService:
                 elapsed = int(time.time() - start_time)
                 current_time = time.time()
                 
-                # Refresh page every 15 seconds to check progress
+                # IMPORTANT: Priority Check - Find item matching prompt immediately
+                if prompt:
+                    matches = self._find_matching_items(prompt)
+                    
+                    # Filter for NEW items only (not in initial snapshot)
+                    new_matches = []
+                    for m in matches:
+                        try:
+                            href = m.get_attribute("href")
+                            if not href and m.tag_name != "a":
+                                try: href = m.find_element(By.TAG_NAME, "a").get_attribute("href")
+                                except: pass
+                            
+                            # If we can't find href, assume it's new (unsafe?) or skip?
+                            # Fix: Allow Failed Tasks (/t/task_) to pass even if in initial_ids
+                            is_failed = href and "/t/task_" in href
+                            if href and href in initial_ids and not is_failed:
+                                continue
+                            new_matches.append(m)
+                        except: pass
+                    
+                    if new_matches:
+                        # Check if items are ready (not loading)
+                        is_ready = True
+                        for item in new_matches:
+                            try:
+                                # Check for loading indicators in text
+                                txt = (item.text + " " + item.get_attribute("innerText")).lower()
+                                loading_markers = ["%", "generating", "queue", "processing"]
+                                if any(marker in txt for marker in loading_markers):
+                                    is_ready = False
+                                    self.log(f"⏳ Item đang xử lý... Chờ thêm.")
+                                    break
+                            except:
+                                # Stale element, assume not ready or re-find needed
+                                is_ready = False
+                                break
+                                
+                        if is_ready:
+                            # Check if enough items found
+                            if len(new_matches) < expected_count:
+                                self.log(f"⚠️ Mới tìm thấy {len(new_matches)}/{expected_count} items. Đợi thêm...")
+                                continue
+                            self.log(f"✅ Tìm thấy {len(new_matches)} kết quả mới đã hoàn thành!")
+                            return True
+                        # If not ready, continue waiting loop (refresh will happen)
+                
+                # Refresh page every 15 seconds
                 if current_time - last_refresh_time >= refresh_interval:
                     self.log(f"⏳ Đã chờ {elapsed}s... Refreshing...")
                     self.driver.refresh()
                     time.sleep(3)
+                    # Create JS scroll to top to ensure new items are rendered in virtual list
+                    self.driver.execute_script("window.scrollTo(0, 0);")
+                    time.sleep(1)
                     last_refresh_time = time.time()
+                    
+                    # 1. SPECIAL CHECK: Any NEW failed/error items? (Don't rely on prompt match for errors)
+                    try:
+                        failed_links = self.driver.find_elements(By.CSS_SELECTOR, 'a[href*="/t/task_"]')
+                        for link in failed_links:
+                            href = link.get_attribute("href")
+                            if href and href not in initial_ids:
+                                self.log(f"⚠️ Phát hiện tác vụ lỗi MỚI (ID: {href[-10:]})! Dừng chờ.")
+                                return True # Treat as completion (will be handled as error in download)
+                    except: pass
+
+                    # 2. Re-check prompt matches immediately after refresh
+                    if prompt:
+                        matches = self._find_matching_items(prompt)
+                        # Filter for NEW items only
+                        new_matches = []
+                        for m in matches:
+                            try:
+                                href = m.get_attribute("href")
+                                if not href:
+                                    try: href = m.find_element(By.TAG_NAME, "a").get_attribute("href")
+                                    except: pass
+                                
+                                # Fix: Allow Failed Tasks (/t/task_) to pass even if in initial_ids
+                                is_failed = href and "/t/task_" in href
+                                if href and href in initial_ids and not is_failed: 
+                                    continue
+                                new_matches.append(m)
+                            except: pass
+
+                        if new_matches:
+                            # Check if enough items found
+                            if len(new_matches) < expected_count:
+                                self.log(f"⚠️ Mới tìm thấy {len(new_matches)}/{expected_count} items. Đợi thêm...")
+                                continue
+
+                            # Check if error item
+                            is_error = False
+                            for m in new_matches:
+                                try:
+                                    href = m.get_attribute("href") or ""
+                                    txt = m.text.lower()
+                                    if "/t/task_" in href or "error" in txt:
+                                        self.log("⚠️ Phát hiện kết quả bị Lỗi!")
+                                        return True # Return true to proceed (and process_batch_download will handle failure)
+                                except: pass
+                            
+                            self.log(f"✅ Tìm thấy {len(new_matches)} kết quả mới khớp prompt!")
+                            return True
                 
-                # Check notification bell for completion indicator
+                # Check notification bell
                 if self._check_notification_bell():
-                    self.log("🔔 Notification bell có badge - video đã xong!")
+                    self.log("🔔 Notification bell có badge!")
                     time.sleep(1)
                     self.driver.refresh()
                     time.sleep(2)
-                    self._click_first_video()
-                    return True
                 
-                # Count current video items
-                current_count = self._count_video_items()
-                
-                if current_count > initial_count:
-                    # New video appeared!
-                    self.log(f"✅ Video mới xuất hiện! ({initial_count} → {current_count})")
-                    time.sleep(1)
-                    
-                    # Click on first video to open it
-                    self._click_first_video()
-                    return True
-                
-                # Log progress periodically (every 30 seconds)
-                if elapsed > 0 and elapsed % 30 == 0:
-                    self.log(f"⏳ Đang chờ video... ({current_count} video trong library)")
+                # Fallback: Count items (only if no prompt provided, or as debug)
+                if not prompt:
+                    current_count = self._count_video_items()
+                    if current_count > initial_count:
+                        self.log("✅ Có kết quả mới (dựa trên số lượng)!")
+                        return True
                 
             except Exception as e:
                 self.log(f"⚠️ Check error: {e}")
             
-            time.sleep(2)  # Check every 2 seconds
+            time.sleep(2)
         
-        self.log("⏰ Timeout - video chưa hoàn thành")
+        self.log("⏰ Timeout - chưa tìm thấy kết quả khớp")
         return False
     
+    def _find_matching_items(self, prompt: str) -> list:
+        """Find ALL video/image items that match the prompt"""
+        try:
+            # Normalize prompt: take first 100 chars (increased from 30), lowercase
+            search_text = prompt[:100].lower().strip()
+            
+            # Selectors prioritized by DOM structure (Grid -> List)
+            # This ensures we check the Top Grid (Failed/Active) and Top of History first
+            selectors = [
+                # 1. Top Grid (Active/Failed Tasks)
+                'div.grid a[href*="/t/task_"]',
+                'div.grid a[href*="/g/gen_"]',
+                
+                # 2. Virtual List (Target items inside data-index containers)
+                # These are usually ordered by most recent
+                'div[data-index] a[href*="/g/gen_"]',
+                'div[data-index] a[href*="/t/task_"]',
+                
+                # 3. Fallback General Selectors (for older/different layouts)
+                'a[href*="/g/gen_"]',        # Success link
+                'a[href*="/t/task_"]',       # Failed task link
+                '[class*="tile"]',           # Old tile structure
+                '[data-testid*="item"]'
+            ]
+            
+            found_items = []
+            
+            for selector in selectors:
+                items = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                if not items: continue
+
+                # Check top 10 items (newest usually first)
+                for item in items[:15]:
+                    if not item.is_displayed():
+                        continue
+                        
+                    # Skip if already added
+                    if item in found_items:
+                        continue
+                        
+                    try:
+                        # Strategy: Get full text context
+                        text_content = ""
+                        
+                        # 1. If item is link, check ancestors for context
+                        if item.tag_name == 'a':
+                            try:
+                                # Try to find a container div (go up multiple levels to cover grid/list structures)
+                                # Level 1 (Tile/Group)
+                                container_1 = item.find_element(By.XPATH, "./ancestor::div[contains(@class, 'flex') or contains(@class, 'group')][1]")
+                                text_content += container_1.get_attribute('innerText')
+                                
+                                # Level 2 (Grid/Row)
+                                container_2 = item.find_element(By.XPATH, "./ancestor::div[contains(@class, 'flex') or contains(@class, 'group')][2]")
+                                text_content += " " + container_2.get_attribute('innerText')
+                                
+                                # Level 3 (Main Container - usually contains both Tile and Prompt info)
+                                container_3 = item.find_element(By.XPATH, "./ancestor::div[contains(@class, 'flex') or contains(@class, 'group')][3]")
+                                text_content += " " + container_3.get_attribute('innerText')
+                            except:
+                                pass
+                        
+                        # 2. Add item's own text
+                        text_content += " " + item.text + " " + item.get_attribute('innerText')
+                        
+                        # 3. Check text match
+                        if search_text in text_content.lower():
+                            found_items.append(item)
+                            continue
+                            
+                        # 4. Fallback: Check Alt Text of internal image
+                        try:
+                            img = item.find_element(By.TAG_NAME, 'img')
+                            alt = img.get_attribute('alt')
+                            if alt and search_text in alt.lower():
+                                found_items.append(item)
+                                continue
+                        except:
+                            pass
+                            
+                    except:
+                        continue
+            
+            # Return list of matches
+            return found_items
+            
+        except Exception as e:
+            return []
+
+    def _process_batch_download(self, prompt: str, variations: int, output_base_path: str) -> bool:
+        """Download multiple variations looping through items"""
+        self.log(f"📥 Bắt đầu download batch ({variations} items)...")
+        success_count = 0
+        
+        # Variations can be int or str. Parse it safely
+        try:
+            limit = int(str(variations).split()[0])
+        except:
+            limit = 1
+            
+        # Limit to reasonable number
+        limit = max(1, min(limit, 4))
+        
+        # Step 6: Wait for generation
+        # Pass variations count so we wait for ALL items to appear
+        wait_success = self.wait_for_generation(prompt=prompt, expected_count=variations)
+        
+        if not wait_success:
+            self.log("❌ Timeout chờ tạo video")
+            # Try to recover by navigating back
+            self._navigate_back_to_create()
+            time.sleep(3) # Wait for library to reload
+            return False
+        
+        for i in range(limit):
+            # 1. Find items matching prompt - Must RE-FIND every time because of page navigation
+            items = self._find_matching_items(prompt)
+            
+            # If not enough items found, stop
+            if not items or i >= len(items):
+                self.log(f"⚠️ Chỉ tìm thấy {len(items)} items khớp prompt (cần {limit})")
+                if i > 0: break # Downloaded some already
+                
+            # Get the correct item (newest first? Sora puts newest at top/left)
+            # Index 0 is newest. If we want to download all, we should iterate.
+            # Usually variations appear as adjacent items.
+            target_item = items[i]
+            
+            try:
+                # Check for error status (Task Failed)
+                href = target_item.get_attribute("href") or ""
+                if "/t/task_" in href:
+                    self.log(f"⚠️ Item {i+1} là tác vụ lỗi (Task Failed). Bỏ qua.")
+                    continue
+
+                # 2. Click item using JS to avoid interception
+                self.log(f"📹 Opening item {i+1}/{limit}...")
+                self.driver.execute_script("arguments[0].click();", target_item)
+                time.sleep(3)
+                
+                # 3. Determine filename
+                # output_base_path is like ".../tom/tom"
+                # If limit > 1, append index: ".../tom/tom_01.mp4"
+                # If limit == 1, keep as is: ".../tom/tom.mp4"
+                
+                current_output = output_base_path
+                if limit > 1:
+                     current_output = f"{output_base_path}_{i+1:02d}"
+                
+                # Append extension (download_video will fix if image)
+                current_output += ".mp4"
+                
+                # 4. Download
+                if self.download_video(current_output):
+                    success_count += 1
+                    
+                # 5. Back to library
+                self._navigate_back_to_create()
+                time.sleep(3) # Wait for library to reload
+                
+            except Exception as e:
+                self.log(f"⚠️ Error downloading item {i+1}: {e}")
+                self._navigate_back_to_create()
+                time.sleep(2)
+                
+        return success_count > 0
+
     def _count_video_items(self) -> int:
         """Count number of video items on library page"""
         try:
@@ -1492,19 +1753,19 @@ class SoraAutomationService:
         if not self.click_generate():
             return False
         
-        # Step 6: Wait for generation
-        if not self.wait_for_generation(timeout):
-            return False
-        
-        # Step 7: Download (if output path provided)
+        # Step 6 & 7: Wait and Download
         download_success = False
-        if output_path:
-            download_success = self.download_video(output_path)
-        else:
-            download_success = True
         
-        # Step 8: IMPORTANT - Navigate back to create page to close detail view
-        # This ensures next task can find prompt input
+        if output_path:
+            # Use new batch download logic (HANDLES WAITING INTERNALLY)
+            # This prevents double-waiting which causes timeout (snapshotting items twice)
+            download_success = self._process_batch_download(prompt, variations, output_path)
+        else:
+            # Just wait if no download requested
+            count = variations if variations else 1
+            download_success = self.wait_for_generation(prompt=prompt, timeout=timeout, expected_count=count)
+            
+        # Always navigate back to be ready for next task
         self._navigate_back_to_create()
         
         return download_success
@@ -1525,19 +1786,35 @@ class SoraAutomationService:
         try:
             self.log(f"📋 Processing: {row.stt} - {row.prompt[:50]}...")
             
-            # Determine output file path - đơn giản hóa: dùng trực tiếp row.output_path nếu có
-            # (đã được xử lý đầy đủ trong sheets_service.py)
-            output_path = ""
-            if row.output_path:
-                # output_path đã được xử lý đầy đủ trong sheets_service.py, dùng trực tiếp
-                output_path = row.output_path
-            elif row.save_name:
-                # Fallback: nếu không có output_path, tạo từ download_dir và save_name
-                save_name_with_ext = row.save_name if row.save_name.lower().endswith('.mp4') else f"{row.save_name}.mp4"
-                output_path = str(Path(self.download_dir) / save_name_with_ext)
-            else:
-                # Fallback: tạo tên file tự động
-                output_path = str(Path(self.download_dir) / f"sora_{row.stt}_{int(time.time())}.mp4")
+            # Determine output file path logic for Batch/Single download
+            variations = getattr(row, 'variations', 1) or 1
+            if isinstance(variations, str):
+                try: 
+                    # Handle "1 (default)" format if coming from standardized processing
+                    variations = int(str(variations).split()[0])
+                except: variations = 1
+                
+            output_dir = self.download_dir
+            filename_base = f"sora_{row.stt}_{int(time.time())}"
+            
+            if row.save_name:
+                # User wants specific name/folder: "tom" -> folder "tom", files "tom_01", "tom_02"...
+                clean_name = os.path.splitext(row.save_name)[0] # remove extension
+                
+                # Create subfolder with same name
+                output_dir = os.path.join(self.download_dir, clean_name)
+                try:
+                    os.makedirs(output_dir, exist_ok=True)
+                    self.log(f"📂 Created output directory: {output_dir}")
+                except Exception as e:
+                    self.log(f"⚠️ Could not create directory: {e}")
+                    output_dir = self.download_dir # Fallback
+                
+                filename_base = clean_name
+            
+            # Use base path without extension for flexibility
+            # download_video will append _01.png, _02.mp4 etc.
+            output_path = os.path.join(output_dir, filename_base)
             
             # Run the main workflow with video settings
             success = self.generate_video(

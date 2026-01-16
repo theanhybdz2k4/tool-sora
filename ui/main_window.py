@@ -1015,11 +1015,17 @@ class SoraToolApp:
         """Called when a task completes"""
         self._update_stats()
         
-        # Update Excel status
+        # Update Excel status based on result
         if self.source_type.get() == "excel" and hasattr(self, 'excel_service'):
              row_index = task.data.get("row_index")
              if row_index is not None:
-                 self.excel_service.update_status(row_index, "Completed")
+                 # Check success status from result dict
+                 status = "Completed"
+                 if task.result and isinstance(task.result, dict):
+                     if not task.result.get("success", False):
+                         status = "Failed"
+                 
+                 self.excel_service.update_status(row_index, status)
         
     def _on_task_error(self, task: Task, error: Exception):
         """Called when a task fails"""

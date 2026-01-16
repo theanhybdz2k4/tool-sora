@@ -1,3 +1,2 @@
-2026/01/16-07:38:58.532 3068 Reusing MANIFEST C:\Projects\Tool Auto Veo AI\tool-sora\data\profiles\sora01\Default\GCM Store\Encryption/MANIFEST-000001
-2026/01/16-07:38:58.533 3068 Recovering log #3
-2026/01/16-07:38:58.533 3068 Reusing old log C:\Projects\Tool Auto Veo AI\tool-sora\data\profiles\sora01\Default\GCM Store\Encryption/000003.log 
+2026/01/16-09:47:42.298 3520 Creating DB C:\Projects\Tool Auto Veo AI\tool-sora\data\profiles\sora01\Default\GCM Store\Encryption since it was missing.
+2026/01/16-09:47:42.312 3520 Reusing MANIFEST C:\Projects\Tool Auto Veo AI\tool-sora\data\profiles\sora01\Default\GCM Store\Encryption/MANIFEST-000001
