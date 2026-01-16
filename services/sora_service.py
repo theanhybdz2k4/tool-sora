@@ -191,7 +191,7 @@ class SoraAutomationService:
             return False
     
     def navigate_to_create(self) -> bool:
-        """Navigate to video creation page - OPTIMIZED to avoid Cloudflare"""
+        """Navigate to video creation page - OPTIMIZED"""
         
         try:
             # Check if already on correct page (avoid unnecessary navigation)
@@ -199,11 +199,6 @@ class SoraAutomationService:
             
             # If already on create page with prompt input, no need to navigate
             if 'sora.chatgpt.com' in current_url:
-                # Check for Cloudflare challenge first
-                if self._is_cloudflare_challenge():
-                    self.log("⚠️ Cloudflare challenge detected! Waiting...")
-                    self._wait_for_cloudflare()
-                
                 # Check if prompt input exists = already on create page
                 if self._find_prompt_input():
                     self.log("✅ Đã ở trang tạo video")
@@ -226,18 +221,24 @@ class SoraAutomationService:
                 self.log("🌐 Navigating to Sora...")
                 self.driver.get(self.BASE_URL)
                 time.sleep(3)
-                
-                # Handle Cloudflare if appeared
-                if self._is_cloudflare_challenge():
-                    self.log("⚠️ Cloudflare challenge detected! Waiting...")
-                    self._wait_for_cloudflare()
             
             # Wait for prompt input to appear (max 15 seconds)
-            for _ in range(15):
+            for i in range(15):
                 if self._find_prompt_input():
                     self.log("✅ Đã vào trang tạo video")
                     return True
                 time.sleep(1)
+            
+            # ONLY check Cloudflare when we FAILED to find prompt input
+            if self._is_cloudflare_challenge():
+                self.log("⚠️ Cloudflare challenge! Waiting...")
+                if self._wait_for_cloudflare():
+                    # Try again after Cloudflare
+                    for _ in range(10):
+                        if self._find_prompt_input():
+                            self.log("✅ Đã vào trang tạo video")
+                            return True
+                        time.sleep(1)
                 
             self.log("⚠️ Không tìm thấy ô nhập prompt")
             return False
@@ -247,17 +248,28 @@ class SoraAutomationService:
             return False
     
     def _is_cloudflare_challenge(self) -> bool:
-        """Check if Cloudflare challenge page is displayed"""
+        """Check if Cloudflare challenge page is displayed - STRICT detection"""
         try:
+            # More strict: check page title and specific challenge elements
+            title = self.driver.title.lower()
+            
+            # Cloudflare challenge page has specific titles
+            if 'just a moment' in title or 'attention required' in title:
+                return True
+            
+            # Check for specific challenge text (not generic "cloudflare")
             page_source = self.driver.page_source.lower()
-            indicators = [
-                'cloudflare',
-                'xác minh bạn là con người',
+            
+            # These are SPECIFIC to challenge page, not footer/scripts
+            strict_indicators = [
+                'xác minh bạn là con người',  # Vietnamese
                 'verify you are human',
-                'checking your browser',
-                'ray id:'
+                'checking your browser before',
+                'please wait while we verify',
+                'chờ một chút'  # "Just a moment" in Vietnamese
             ]
-            return any(ind in page_source for ind in indicators)
+            
+            return any(ind in page_source for ind in strict_indicators)
         except:
             return False
     
@@ -273,6 +285,48 @@ class SoraAutomationService:
             time.sleep(2)
         self.log("⚠️ Timeout chờ Cloudflare")
         return False
+    
+    def _navigate_back_to_create(self):
+        """Navigate back to create page after viewing/downloading content"""
+        self.log("🔙 Quay lại trang tạo...")
+        
+        try:
+            # Method 1: Press ESC to close any modal/overlay
+            try:
+                body = self.driver.find_element(By.TAG_NAME, 'body')
+                body.send_keys(Keys.ESCAPE)
+                time.sleep(1)
+                
+                # Check if back on create page
+                if self._find_prompt_input():
+                    return True
+            except:
+                pass
+            
+            # Method 2: Click the Sora logo to go home
+            try:
+                logo = self.driver.find_element(By.CSS_SELECTOR, 
+                    'a[href="/"], [aria-label="Sora"], [aria-label="Home"]')
+                if logo.is_displayed():
+                    logo.click()
+                    time.sleep(2)
+                    if self._find_prompt_input():
+                        return True
+            except:
+                pass
+            
+            # Method 3: Navigate directly to base URL
+            self.driver.get(self.BASE_URL)
+            time.sleep(2)
+            
+            return self._find_prompt_input() is not None
+            
+        except Exception as e:
+            self.log(f"⚠️ Error navigating back: {e}")
+            # Fallback: just navigate to base URL
+            self.driver.get(self.BASE_URL)
+            time.sleep(2)
+            return False
     
     def _find_prompt_input(self):
         """Find the prompt input field - Sora uses 'Describe your video...'"""
@@ -931,17 +985,11 @@ class SoraAutomationService:
                 elapsed = int(time.time() - start_time)
                 current_time = time.time()
                 
-                # Refresh page every 15 seconds to check progress (less frequent to avoid Cloudflare)
+                # Refresh page every 15 seconds to check progress
                 if current_time - last_refresh_time >= refresh_interval:
                     self.log(f"⏳ Đã chờ {elapsed}s... Refreshing...")
                     self.driver.refresh()
-                    time.sleep(3)  # Wait for page to load
-                    
-                    # Check for Cloudflare after refresh
-                    if self._is_cloudflare_challenge():
-                        self.log("⚠️ Cloudflare challenge! Waiting...")
-                        self._wait_for_cloudflare()
-                    
+                    time.sleep(3)
                     last_refresh_time = time.time()
                 
                 # Check notification bell for completion indicator
@@ -1449,10 +1497,17 @@ class SoraAutomationService:
             return False
         
         # Step 7: Download (if output path provided)
+        download_success = False
         if output_path:
-            return self.download_video(output_path)
+            download_success = self.download_video(output_path)
+        else:
+            download_success = True
         
-        return True
+        # Step 8: IMPORTANT - Navigate back to create page to close detail view
+        # This ensures next task can find prompt input
+        self._navigate_back_to_create()
+        
+        return download_success
     
     def process_row(self, row) -> dict:
         """
