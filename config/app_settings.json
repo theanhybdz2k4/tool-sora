@@ -10,9 +10,9 @@
   "sheet_url": "",
   "aspect_ratio": "9:16",
   "model": "Sora (mặc định)",
-  "image_folder": "C:\\Projects\\Tool Auto Veo AI\\python-tool-sora\\Image",
-  "output_folder": "C:/Projects/Tool Auto Veo AI/python-tool-sora/Output/Test",
+  "image_folder": "C:/Projects/Tool Auto Veo AI/new/img",
+  "output_folder": "C:/Projects/Tool Auto Veo AI/tool-sora/downloads",
   "default_resolution": "480p",
-  "default_variations": "1",
+  "default_variations": "2",
   "default_type": "image"
 }

@@ -275,21 +275,23 @@ class SoraToolApp:
         ttk.Button(toolbar, text="❌ Clear Selection", command=self._clear_selection).pack(side="left", padx=5)
         
         # Tasks treeview
-        columns = ("stt", "prompt", "status", "aspect", "duration", "output")
+        columns = ("stt", "prompt", "status", "type", "aspect", "variations", "output")
         self.tasks_tree = ttk.Treeview(tab, columns=columns, show="headings", height=20)
         
         self.tasks_tree.heading("stt", text="#")
         self.tasks_tree.heading("prompt", text="Prompt")
         self.tasks_tree.heading("status", text="Status")
+        self.tasks_tree.heading("type", text="Type")
         self.tasks_tree.heading("aspect", text="Aspect")
-        self.tasks_tree.heading("duration", text="Duration")
+        self.tasks_tree.heading("variations", text="Vars")
         self.tasks_tree.heading("output", text="Output Path")
         
-        self.tasks_tree.column("stt", width=50)
-        self.tasks_tree.column("prompt", width=400)
-        self.tasks_tree.column("status", width=100)
-        self.tasks_tree.column("aspect", width=80)
-        self.tasks_tree.column("duration", width=80)
+        self.tasks_tree.column("stt", width=40)
+        self.tasks_tree.column("prompt", width=350)
+        self.tasks_tree.column("status", width=80)
+        self.tasks_tree.column("type", width=60)
+        self.tasks_tree.column("aspect", width=60)
+        self.tasks_tree.column("variations", width=40)
         self.tasks_tree.column("output", width=200)
         
         # Scrollbar
@@ -597,14 +599,20 @@ class SoraToolApp:
         for item in self.tasks_tree.get_children():
             self.tasks_tree.delete(item)
             
-        # Add tasks
+        # Add tasks - show Settings defaults when task values are empty
         for task in self.tasks:
+            # Apply Settings defaults for display
+            display_type = task.type or self.default_type.get()
+            display_aspect = task.aspect_ratio or self.default_aspect.get()
+            display_vars = task.variations if task.variations else int(self.default_variations.get())
+            
             self.tasks_tree.insert("", "end", values=(
                 task.stt,
                 task.prompt[:60] + "..." if len(task.prompt) > 60 else task.prompt,
                 task.status or "Pending",
-                task.aspect_ratio,
-                task.duration,
+                display_type,
+                display_aspect,
+                display_vars,
                 task.output_path[:30] + "..." if len(task.output_path) > 30 else task.output_path
             ))
             
@@ -991,6 +999,7 @@ class SoraToolApp:
         sora = self.sora_instances[thread_id]
         
         # Convert dict back to SheetRow
+        # Apply Settings defaults when Excel values are empty
         row = SheetRow(
             row_index=data.get("row_index", 0),
             stt=data.get("stt", ""),
@@ -1002,7 +1011,9 @@ class SoraToolApp:
             status=data.get("status", ""),
             type=data.get("type") or self.default_type.get(),
             aspect_ratio=data.get("aspect_ratio") or self.default_aspect.get(),
-            duration=data.get("duration", self.default_duration.get()),
+            duration=data.get("duration") or self.default_duration.get(),
+            resolution=data.get("resolution") or self.default_resolution.get(),
+            variations=int(data.get("variations") or self.default_variations.get()),
         )
         
         self._log(f"🔎 Task {row.row_index} Type Debug: Final='{row.type}' | Sheet='{data.get('type')}' | Default='{self.default_type.get()}'")

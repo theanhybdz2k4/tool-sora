@@ -5,8 +5,17 @@ import os
 import json
 from pathlib import Path
 
+import sys
+
 # Base directories
-BASE_DIR = Path(__file__).parent.parent
+if getattr(sys, 'frozen', False):
+    # Running as compiled exe
+    # sys.executable is <path>/SoraTool.exe
+    BASE_DIR = Path(sys.executable).parent
+else:
+    # Running as script
+    BASE_DIR = Path(__file__).parent.parent
+
 CONFIG_DIR = BASE_DIR / "config"
 DOWNLOADS_DIR = BASE_DIR / "downloads"
 LOGS_DIR = BASE_DIR / "logs"

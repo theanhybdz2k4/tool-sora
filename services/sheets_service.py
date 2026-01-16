@@ -30,10 +30,10 @@ class SheetRow:
         presets: str = "",
         status: str = "",
         type: str = "",
-        aspect_ratio: str = "16:9",
-        duration: str = "10s",
-        resolution: str = "480p",
-        variations: int = 1,
+        aspect_ratio: str = "",  # Will be set based on type at generation time
+        duration: str = "",  # Only used for video type
+        resolution: str = "",  # Only used for video type
+        variations: Optional[int] = None,
         model: str = "",
         extra: Dict[str, Any] = None
     ):
@@ -89,7 +89,7 @@ class GoogleSheetsService:
         "aspect_ratio": ["aspect", "aspect_ratio", "ratio", "tỷ lệ", "size"],
         "duration": ["duration", "time", "length", "thời lượng"],
         "resolution": ["resolution", "quality", "res", "độ phân giải"],
-        "variations": ["variations", "variants", "num_videos", "số video"],
+        "variations": ["variations", "variation", "variants", "variant", "num_videos", "số video", "số ảnh", "count", "số lượng"],
         "model": ["model", "style", "kiểu"],
     }
     
@@ -384,10 +384,10 @@ class ExcelService:
                     presets=get_val("presets"),
                     status=status,
                     type=get_val("type") or "",
-                    aspect_ratio=get_val("aspect_ratio") or "16:9",
-                    duration=get_val("duration") or "10s",
-                    resolution=get_val("resolution") or "480p",
-                    variations=int(get_val("variations") or "1") if get_val("variations").isdigit() else 1,
+                    aspect_ratio=get_val("aspect_ratio") or "",  # No forced default
+                    duration=get_val("duration") or "",  # Empty for image type
+                    resolution=get_val("resolution") or "",  # Empty for image type
+                    variations=int(get_val("variations")) if get_val("variations").isdigit() else None,
                     model=get_val("model"),
                 )
                 
@@ -479,27 +479,62 @@ class ExcelService:
 
 
 def create_template_excel(filepath: str):
-    """Create a template Excel file"""
+    """Create a template Excel file with all supported columns"""
     wb = Workbook()
     ws = wb.active
     ws.title = "Prompts"
     
-    # Headers
+    # Headers - All supported columns
     headers = [
-        "STT", "PROMPT", "IMAGE", "SAVENAME", "PATH", "TYPE", "ASPECT_RATIO", "DURATION", "RESOLUTION", "VARIATIONS", "STATUS"
+        "STT",           # Row number / index
+        "PROMPT",        # The prompt text for generation (REQUIRED)
+        "IMAGE",         # Reference image file name(s), comma-separated
+        "SAVENAME",      # Output file/folder name (without extension)
+        "TYPE",          # "image" or "video" (default: image)
+        "ASPECT_RATIO",  # "16:9", "9:16", "1:1", "3:2", "2:3" (default: 16:9)
+        "DURATION",      # "5s", "10s", "15s", "20s" - only for video (default: 10s)
+        "RESOLUTION",    # "480p", "720p", "1080p" - only for video (default: 480p)
+        "VARIATIONS",    # 1, 2, or 4 - number of outputs (default: 1)
+        "STATUS"         # Auto-updated by tool: Completed, Failed, Processing
     ]
     for col, header in enumerate(headers, start=1):
         ws.cell(row=1, column=col, value=header)
         
-    # Sample rows
+    # Sample rows showing different use cases
     sample_data = [
-        ["1", "A cinematic shot of a sunrise over mountains", "", "sunrise_video", "D:\\Videos", "video", "16:9", "5s", "480p", "1", ""],
-        ["2", "Close-up of coffee being poured into a cup", "", "coffee_pour", "", "image", "1:1", "", "", "1", ""],
+        # Row 1: Simple video generation
+        ["1", "A cinematic shot of a sunrise over mountains with golden rays breaking through clouds", "", "sunrise_video", "video", "16:9", "10s", "720p", "1", ""],
+        # Row 2: Image generation with custom aspect ratio
+        ["2", "Close-up of coffee being poured into a ceramic cup, steam rising, warm lighting", "", "coffee_pour", "image", "1:1", "", "", "2", ""],
+        # Row 3: Video from reference image
+        ["3", "A cat walking gracefully across a moonlit garden", "cat_ref.jpg", "moonlit_cat", "video", "9:16", "5s", "480p", "1", ""],
+        # Row 4: Multiple image variations
+        ["4", "A futuristic cityscape with flying cars and neon lights at night", "", "cyber_city", "image", "16:9", "", "", "4", ""],
     ]
     
     for row_idx, row_data in enumerate(sample_data, start=2):
         for col_idx, value in enumerate(row_data, start=1):
             ws.cell(row=row_idx, column=col_idx, value=value)
+    
+    # Add a description sheet
+    desc_ws = wb.create_sheet("Instructions")
+    instructions = [
+        ["COLUMN", "DESCRIPTION", "REQUIRED", "VALUES"],
+        ["STT", "Row number (auto-generated if empty)", "No", "1, 2, 3..."],
+        ["PROMPT", "Description of what to generate", "YES", "Any text"],
+        ["IMAGE", "Reference image file name(s)", "No", "image.jpg or img1.jpg,img2.jpg"],
+        ["SAVENAME", "Output file name (no extension)", "No", "my_video (creates: my_video/my_video_01.mp4)"],
+        ["TYPE", "Media type to generate", "No", "image (default) or video"],
+        ["ASPECT_RATIO", "Output aspect ratio", "No", "16:9, 9:16, 1:1, 3:2, 2:3"],
+        ["DURATION", "Video length (video only)", "No", "5s, 10s, 15s, 20s"],
+        ["RESOLUTION", "Video quality (video only)", "No", "480p, 720p, 1080p"],
+        ["VARIATIONS", "Number of outputs to generate", "No", "1, 2, or 4"],
+        ["STATUS", "Auto-updated by tool", "No", "Don't edit - filled automatically"],
+    ]
+    for row_idx, row_data in enumerate(instructions, start=1):
+        for col_idx, value in enumerate(row_data, start=1):
+            desc_ws.cell(row=row_idx, column=col_idx, value=value)
             
     wb.save(filepath)
     print(f"✅ Template created: {filepath}")
+

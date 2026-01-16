@@ -1,2 +1,8 @@
-2026/01/16-09:44:22.692 3b7c Creating DB C:\Projects\Tool Auto Veo AI\tool-sora\data\profiles\sora01\Default\Local Storage\leveldb since it was missing.
-2026/01/16-09:44:22.770 3b7c Reusing MANIFEST C:\Projects\Tool Auto Veo AI\tool-sora\data\profiles\sora01\Default\Local Storage\leveldb/MANIFEST-000001
+2026/01/16-13:21:39.168 29a4 Reusing MANIFEST C:\Projects\Tool Auto Veo AI\tool-sora\data\profiles\sora01\Default\Local Storage\leveldb/MANIFEST-000001
+2026/01/16-13:21:39.174 29a4 Recovering log #32
+2026/01/16-13:21:39.184 29a4 Level-0 table #34: started
+2026/01/16-13:21:39.203 29a4 Level-0 table #34: 1476368 bytes OK
+2026/01/16-13:21:39.210 29a4 Delete type=0 #32
+2026/01/16-13:22:39.237 3064 Level-0 table #37: started
+2026/01/16-13:22:39.253 3064 Level-0 table #37: 1476535 bytes OK
+2026/01/16-13:22:39.255 3064 Delete type=0 #35

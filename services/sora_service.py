@@ -194,8 +194,19 @@ class SoraAutomationService:
         """Navigate to video creation page - OPTIMIZED"""
         
         try:
+            # PRIORITIZE: Switch to old Sora ONLY if not already switched this session
+            # Must run BEFORE checking prompt input, because New Sora also has prompt input
+            if not self._switched_to_old_sora:
+                self.log("🔄 Kiểm tra và Chuyển sang Old Sora...")
+                if self.switch_to_old_sora():
+                    self._switched_to_old_sora = True
+                time.sleep(2)
+
             # Check if already on correct page (avoid unnecessary navigation)
-            current_url = self.driver.current_url
+            try:
+                current_url = self.driver.current_url
+            except:
+                current_url = ""
             
             # If already on create page with prompt input, no need to navigate
             if 'sora.chatgpt.com' in current_url:
@@ -203,9 +214,6 @@ class SoraAutomationService:
                 if self._find_prompt_input():
                     self.log("✅ Đã ở trang tạo video")
                     return True
-            
-            # Switch to old Sora ONLY if not already switched this session
-            if not self._switched_to_old_sora:
                 self.log("🔄 Chuyển sang Old Sora...")
                 if self.switch_to_old_sora():
                     self._switched_to_old_sora = True
@@ -724,20 +732,21 @@ class SoraAutomationService:
     
     def _set_dropdown_option(self, value: str, option_type: str) -> bool:
         """
-        Click on a dropdown option in the bottom bar and select a value.
+        Click on a dropdown button in the bottom bar, wait for modal, then select option.
         
-        IMPORTANT: Only clicks buttons in the bottom bar area to avoid
-        accidentally clicking on video thumbnails.
+        Flow:
+        1. Find and click the dropdown button (Type, Aspect, Duration, Resolution, Variations)
+        2. Wait for dropdown modal to appear
+        3. Find and click the option with EXACT text match
         """
         try:
-            # Get window height to calculate bottom bar area
+            # ===== STEP 1: FIND AND CLICK DROPDOWN BUTTON =====
             window_height = self.driver.execute_script("return window.innerHeight")
-            bottom_threshold = window_height - 150  # Bottom 150px is the bar
+            bottom_threshold = window_height - 150
             
-            # Find all buttons and filter by position
-            all_buttons = self.driver.find_elements(By.CSS_SELECTOR, 'button, [role="button"]')
+            all_buttons = self.driver.find_elements(By.CSS_SELECTOR, 'button, [role="button"], [role="combobox"]')
             
-            # Filter to only buttons in the bottom bar
+            # Filter to buttons in bottom bar
             bottom_bar_buttons = []
             for btn in all_buttons:
                 try:
@@ -745,203 +754,257 @@ class SoraAutomationService:
                         location = btn.location
                         if location.get('y', 0) > bottom_threshold:
                             bottom_bar_buttons.append(btn)
-                except Exception:
+                except:
                     continue
             
             self.log(f"  🔍 Tìm thấy {len(bottom_bar_buttons)} nút trong bottom bar")
             
-            # Click the appropriate button based on option type
+            # Find the right button to click based on option_type
+            button_clicked = False
             for btn in bottom_bar_buttons:
                 try:
                     btn_text = btn.text.lower().strip()
-                    aria_label = btn.get_attribute('aria-label') or ""
-                    aria_label = aria_label.lower()
-                    role = btn.get_attribute("role")
+                    aria_label = (btn.get_attribute('aria-label') or "").lower()
+                    
+                    should_click = False
                     
                     if option_type == "type":
-                        # Require role="combobox"
-                        if role != "combobox":
-                            continue
-
-                        # Look for Type buttons: Image or Video or aria-label="Media type"
-                        # EXCLUDE "search" to avoid "search for similar images"
-                        if ("type" in aria_label or "media" in aria_label) and "search" not in aria_label:
-                             btn.click()
-                             self.log(f"  🎨 Clicked type button (by aria): {aria_label}")
-                             time.sleep(0.5)
-                             break
-                        # Text check
-                        if btn_text == "image" or btn_text == "video":
-                            btn.click()
-                            self.log(f"  🎨 Clicked type button: {btn_text}")
-                            time.sleep(0.5)
-                            break
-                        elif ("image" in btn_text or "video" in btn_text) and "search" not in btn_text and "similar" not in btn_text:
-                            btn.click()
-                            self.log(f"  🎨 Clicked type button: {btn_text}")
-                            time.sleep(0.5)
-                            break
+                        # Type button shows current selection: "Image" or "Video"
+                        if btn_text in ["image", "video"] or "type" in aria_label or "media" in aria_label:
+                            should_click = True
                             
                     elif option_type == "aspect":
-                        # aria-label="Aspect ratio"
-                        if "aspect" in aria_label or "ratio" in aria_label:
-                            btn.click()
-                            self.log(f"  📐 Clicked aspect button (by aria): {aria_label}")
-                            time.sleep(0.5)
-                            break
-                        # Text check
-                        if any(ratio in btn_text for ratio in ['16:9', '9:16', '1:1', '3:2', '2:3']):
-                            btn.click()
-                            self.log(f"  📐 Clicked aspect button: {btn_text}")
-                            time.sleep(0.5)
-                            break
-                            
-                    elif option_type == "resolution":
-                        # aria-label="Resolution" or "Quality"
-                        if "resolution" in aria_label or "quality" in aria_label:
-                            btn.click()
-                            self.log(f"  📺 Clicked resolution button (by aria): {aria_label}")
-                            time.sleep(0.5)
-                            break
-                        # Text check
-                        if any(res in btn_text for res in ['1080', '720', '480', '360']):
-                            btn.click()
-                            self.log(f"  📺 Clicked resolution button: {btn_text}")
-                            time.sleep(0.5)
-                            break
+                        # Aspect button shows current ratio: "16:9", "3:2", etc.
+                        if any(r in btn_text for r in ['16:9', '9:16', '1:1', '3:2', '2:3']) or "aspect" in aria_label or "ratio" in aria_label:
+                            should_click = True
                             
                     elif option_type == "duration":
-                        # aria-label="Duration"
-                        if "duration" in aria_label:
-                            btn.click()
-                            self.log(f"  ⏱️ Clicked duration button (by aria): {aria_label}")
-                            time.sleep(0.5)
-                            break
-                        # Text check: ensure it has 's' AND a number, AND NO 'v' (to avoid confusion)
-                        if 's' in btn_text and 'v' not in btn_text and any(d in btn_text for d in ['5', '10', '15', '20']):
-                            btn.click()
-                            self.log(f"  ⏱️ Clicked duration button: {btn_text}")
-                            time.sleep(0.5)
-                            break
+                        # Duration button shows: "5s", "10s", "15s", "20s"
+                        if ('s' in btn_text and any(d in btn_text for d in ['5', '10', '15', '20']) and 'v' not in btn_text) or "duration" in aria_label:
+                            should_click = True
+                            
+                    elif option_type == "resolution":
+                        # Resolution button shows: "480p", "720p", "1080p"
+                        if any(r in btn_text for r in ['480', '720', '1080', '360']) or "resolution" in aria_label or "quality" in aria_label:
+                            should_click = True
                             
                     elif option_type == "variations":
-                        # aria-label="Variations" or "Video count"
-                        if "variation" in aria_label or "count" in aria_label:
-                             btn.click()
-                             self.log(f"  🎬 Clicked variations button (by aria): {aria_label}")
-                             time.sleep(0.5)
-                             break
-                        # Text check: 1v, 2v, 1 video... ensure NO 's' (unless "videos") to avoid Duration
-                        # Strict check for "v" format or "video" format
-                        if ('video' in btn_text and any(c.isdigit() for c in btn_text)) or \
-                           ('v' in btn_text and 's' not in btn_text and any(c.isdigit() for c in btn_text) and len(btn_text) < 5):
-                            btn.click()
-                            self.log(f"  🎬 Clicked variations button: {btn_text}")
-                            time.sleep(0.5)
-                            break
-                            
-                except Exception:
-                    continue
-                            
-                except Exception:
-                    continue
-            
-            # Now find and click the option in the dropdown menu
-            time.sleep(0.5)
-            
-            # Look for dropdown options that match the value
-            value_lower = value.lower()
-            
-            # Special handling for type option - normalize value
-            type_value = None
-            if option_type == "type":
-                # Normalize value: "image" or "video"
-                type_value = value_lower.strip()
-                if type_value not in ["image", "video"]:
-                    # Try to extract from value if it contains the word
-                    if "image" in type_value:
-                        type_value = "image"
-                    elif "video" in type_value:
-                        type_value = "video"
-                    else:
-                        self.log(f"  ⚠️ Invalid type value: {value}")
-                        return False
-            
-            # Try role-based selectors first (more specific)
-            dropdown_items = self.driver.find_elements(By.CSS_SELECTOR, 
-                '[role="option"], [role="menuitem"], [role="menuitemradio"]')
-            
-            for item in dropdown_items:
-                try:
-                    item_text = item.text.lower().strip()
-                    if option_type == "type":
-                        # For type, match exactly "image" or "video"
-                        if item_text == type_value or (type_value == "image" and "image" in item_text) or (type_value == "video" and "video" in item_text):
-                            if item.is_displayed():
-                                item.click()
-                                self.log(f"  ✓ Set {option_type}: {value}")
-                                time.sleep(0.3)
-                                return True
-                    else:
-                        # For other options, use existing logic
-                        if value_lower in item_text or item_text in value_lower:
-                            if item.is_displayed():
-                                item.click()
-                                self.log(f"  ✓ Set {option_type}: {value}")
-                                time.sleep(0.3)
-                                return True
-                except Exception:
-                    continue
-            
-            # Fallback: look for any clickable element with matching text
-            try:
-                # Construct XPath to find text case-insensitive
-                if option_type == "type" and type_value:
-                    # Specific handling for type to ensure we don't click wrong things
-                    # Using translate for case-insensitive matching
-                    xpath = f"//*[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '{type_value}')]"
-                    elements = self.driver.find_elements(By.XPATH, xpath)
-                elif option_type == "variations":
-                    # For variations, we might be looking for "2 videos" or "4 videos"
-                    # Also handle just the number if passed
-                    search_term = value_lower
-                    if search_term.isdigit():
-                        search_term = f"{search_term} video" # append ' video' if just a digit
+                        # Variations button shows: "1v", "2v", "4v" or "1 video", "4 images", etc.
+                        # Check for compact format (1v, 2v, 4v) or full format (1 video, 2 images)
+                        has_digit = any(c.isdigit() for c in btn_text)
+                        is_compact_v = ('v' in btn_text and has_digit and btn_text.replace(' ', '').endswith('v'))
+                        is_full_format = has_digit and any(w in btn_text for w in ['video', 'image', 'videos', 'images'])
+                        if is_compact_v or is_full_format or "variation" in aria_label or "count" in aria_label:
+                            should_click = True
                     
-                    xpath = f"//*[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '{search_term}')]"
-                    elements = self.driver.find_elements(By.XPATH, xpath)
-                else:
-                    xpath = f"//*[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '{value_lower}')]"
-                    elements = self.driver.find_elements(By.XPATH, xpath)
+                    if should_click:
+                        btn.click()
+                        self.log(f"  �️ Clicked {option_type} button: {btn_text or aria_label}")
+                        button_clicked = True
+                        break
+                        
+                except Exception:
+                    continue
+            
+            if not button_clicked:
+                self.log(f"  ⚠️ Không tìm thấy nút {option_type}")
                 
-                for elem in elements:
-                    if elem.is_displayed():
-                        # Check it's in the dropdown area (popup)
-                        location = elem.location
-                        # Simple check: if y < bottom_threshold, it might be the dropdown menu which usually spawns ABOVE the bar
-                        # But some dropdowns might spawn differently. 
-                        # We just check if it's clickable and visible.
+                # For variations: Try fallback JavaScript method
+                if option_type == "variations":
+                    self.log(f"  🔄 Thử tìm variations button bằng JS...")
+                    try:
+                        # Look for combobox buttons with pattern like "1v", "2v", "4v"
+                        js_find_variations_btn = """
+                        (function() {
+                            var buttons = document.querySelectorAll('button[role="combobox"]');
+                            for (var i = 0; i < buttons.length; i++) {
+                                var btn = buttons[i];
+                                var text = btn.textContent.trim();
+                                // Match patterns like "1v", "2v", "4v" or "1 video", "2 images"
+                                if (/^\\d+v$/i.test(text.replace(/\\s+/g, '')) || 
+                                    /\\d+\\s*(video|image|videos|images)/i.test(text)) {
+                                    btn.click();
+                                    return 'clicked: ' + text;
+                                }
+                            }
+                            return 'not_found';
+                        })();
+                        """
+                        result = self.driver.execute_script(js_find_variations_btn)
+                        if result and result != 'not_found':
+                            self.log(f"  ✓ Tìm thấy variations button bằng JS: {result}")
+                            button_clicked = True
+                    except Exception as e:
+                        self.log(f"  ⚠️ JS fallback error: {e}")
+                
+                # If still not clicked after fallback, return False
+                if not button_clicked:
+                    return False
+            
+            # ===== STEP 2: WAIT FOR DROPDOWN MODAL =====
+            time.sleep(0.8)  # Wait for modal animation
+            
+            # ===== STEP 3: FIND AND CLICK THE OPTION =====
+            # Normalize the value we're looking for
+            search_value = value.lower().strip()
+            
+            # Special handling for different option types
+            if option_type == "type":
+                # Just "image" or "video"
+                if "image" in search_value:
+                    search_value = "image"
+                elif "video" in search_value:
+                    search_value = "video"
+                    
+            elif option_type == "duration":
+                # UI shows "X seconds" format
+                # Input might be "5s", "10s", "5 seconds", etc.
+                dur_num = ''.join(c for c in search_value if c.isdigit())
+                if dur_num:
+                    search_value = f"{dur_num} seconds"
+                    
+            elif option_type == "resolution":
+                # UI shows "1080p", "720p", "480p" with extra text
+                # Just need to match the resolution part
+                for res in ['1080p', '720p', '480p', '360p']:
+                    if res.replace('p', '') in search_value:
+                        search_value = res
+                        break
                         
-                        elem_text = elem.text.lower().strip()
+            elif option_type == "variations":
+                # UI shows "4 images", "2 images", "1 image" for image type
+                # or "4 videos", "2 videos", "1 video" for video type
+                # Value passed from configure_video_settings is already formatted
+                # Just ensure clean format without extra spaces
+                search_value = ' '.join(search_value.split())  # Normalize whitespace
+            
+            self.log(f"  🔎 Tìm option: '{search_value}'")
+            
+            # Method 1: Find by role="option" or role="menuitem"
+            option_elements = self.driver.find_elements(By.CSS_SELECTOR, 
+                '[role="option"], [role="menuitem"], [role="menuitemradio"], [role="listbox"] > div')
+            
+            for opt in option_elements:
+                try:
+                    if not opt.is_displayed():
+                        continue
+                    
+                    # Get text and normalize whitespace (icons can cause extra spaces)
+                    opt_text = ' '.join(opt.text.lower().split())
+                    
+                    # Log visible options for debugging
+                    if opt_text and len(opt_text) < 40:
+                        self.log(f"    📋 Option visible: '{opt_text}'")
+                    
+                    # EXACT match or starts with (for resolution which has "8x slower" suffix)
+                    if opt_text == search_value or opt_text.startswith(search_value + ' ') or opt_text.startswith(search_value):
+                        opt.click()
+                        self.log(f"  ✓ Set {option_type}: {value}")
+                        time.sleep(0.3)
+                        return True
                         
-                        if option_type == "type" and type_value:
-                             # Verify it's actually Image or Video option
-                            if (type_value == "image" and ("image" in elem_text and "video" not in elem_text)) or \
-                               (type_value == "video" and ("video" in elem_text and "image" not in elem_text)):
-                                elem.click()
-                                self.log(f"  ✓ Set {option_type} (fallback): {value}")
-                                return True
-                        elif option_type == "variations":
-                             if value_lower in elem_text:
-                                elem.click()
-                                self.log(f"  ✓ Set {option_type} (fallback): {value}")
-                                return True
-                        else:
-                            elem.click()
-                            self.log(f"  ✓ Set {option_type} (fallback): {value}")
-                            return True
+                except Exception:
+                    continue
+            
+            # Method 2: JavaScript - find ALL visible elements and match text
+            js_find_and_click = f"""
+            (function() {{
+                var searchValue = '{search_value}';
+                
+                // Helper function to normalize whitespace
+                function normalizeText(text) {{
+                    return text.replace(/\\s+/g, ' ').trim().toLowerCase();
+                }}
+                
+                // Get all elements on page
+                var allElements = document.querySelectorAll('*');
+                
+                // First pass: exact match
+                for (var i = 0; i < allElements.length; i++) {{
+                    var el = allElements[i];
+                    var rect = el.getBoundingClientRect();
+                    
+                    // Must be visible and in upper part of screen (dropdown area)
+                    if (rect.width === 0 || rect.height === 0) continue;
+                    if (rect.top > window.innerHeight * 0.85) continue; // Skip bottom bar
+                    if (rect.top < 0) continue; // Skip off-screen
+                    
+                    var style = window.getComputedStyle(el);
+                    if (style.display === 'none' || style.visibility === 'hidden') continue;
+                    
+                    // Get text content without nested elements' text (direct text only)
+                    var directText = '';
+                    for (var j = 0; j < el.childNodes.length; j++) {{
+                        if (el.childNodes[j].nodeType === 3) {{ // TEXT_NODE
+                            directText += el.childNodes[j].textContent;
+                        }}
+                    }}
+                    directText = normalizeText(directText);
+                    
+                    // Also try full text content with normalized whitespace
+                    var fullText = normalizeText(el.textContent);
+                    
+                    // EXACT match
+                    if (directText === searchValue || fullText === searchValue) {{
+                        el.click();
+                        return 'exact: ' + fullText.substring(0, 30);
+                    }}
+                    
+                    // Starts with match (for "1080p 8x slower" matching "1080p")
+                    if (fullText.startsWith(searchValue + ' ') || fullText.startsWith(searchValue)) {{
+                        // Verify it's a clickable option (not just any element)
+                        var role = el.getAttribute('role');
+                        var isOption = role === 'option' || role === 'menuitem' || role === 'menuitemradio';
+                        var isClickable = el.tagName === 'BUTTON' || el.tagName === 'A' || el.onclick || el.style.cursor === 'pointer';
+                        
+                        if (isOption || isClickable || el.closest('[role="listbox"]') || el.closest('[role="menu"]')) {{
+                            el.click();
+                            return 'startswith: ' + fullText.substring(0, 30);
+                        }}
+                    }}
+                }}
+                
+                // Second pass: partial match (search value contained in element text)
+                for (var i = 0; i < allElements.length; i++) {{
+                    var el = allElements[i];
+                    var rect = el.getBoundingClientRect();
+                    if (rect.width === 0 || rect.height === 0) continue;
+                    if (rect.top > window.innerHeight * 0.85) continue;
+                    if (rect.top < 0) continue;
+                    
+                    var fullText = normalizeText(el.textContent);
+                    
+                    // Text must contain search value AND be relatively short (option-like)
+                    if (fullText.includes(searchValue) && fullText.length < 40) {{
+                        var role = el.getAttribute('role');
+                        if (role === 'option' || role === 'menuitem' || role === 'menuitemradio') {{
+                            el.click();
+                            return 'partial: ' + fullText.substring(0, 30);
+                        }}
+                    }}
+                }}
+                
+                return 'not_found';
+            }})();
+            """
+            
+            try:
+                result = self.driver.execute_script(js_find_and_click)
+                if result and result != 'not_found':
+                    self.log(f"  ✓ Set {option_type}: {value} ({result})")
+                    time.sleep(0.3)
+                    return True
+                else:
+                    self.log(f"  ⚠️ Không tìm thấy option: {search_value}")
             except Exception as e:
-                self.log(f"  ⚠️ Fallback selection failed: {e}")
+                self.log(f"  ⚠️ JS error: {e}")
+            
+            # Close the dropdown if option not found (press Escape or click elsewhere)
+            try:
+                self.driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.ESCAPE)
+                time.sleep(0.3)
+                self.log(f"  🔽 Đã đóng dropdown")
+            except:
                 pass
             
             return False
@@ -1005,9 +1068,8 @@ class SoraAutomationService:
                                 except: pass
                             
                             # If we can't find href, assume it's new (unsafe?) or skip?
-                            # Fix: Allow Failed Tasks (/t/task_) to pass even if in initial_ids
-                            is_failed = href and "/t/task_" in href
-                            if href and href in initial_ids and not is_failed:
+                            # ALL items must be NEW (not in initial_ids) to be selected
+                            if href and href in initial_ids:
                                 continue
                             new_matches.append(m)
                         except: pass
@@ -1070,9 +1132,8 @@ class SoraAutomationService:
                                     try: href = m.find_element(By.TAG_NAME, "a").get_attribute("href")
                                     except: pass
                                 
-                                # Fix: Allow Failed Tasks (/t/task_) to pass even if in initial_ids
-                                is_failed = href and "/t/task_" in href
-                                if href and href in initial_ids and not is_failed: 
+                                # ALL items must be NEW (not in initial_ids) to be selected
+                                if href and href in initial_ids:
                                     continue
                                 new_matches.append(m)
                             except: pass
@@ -1709,26 +1770,39 @@ class SoraAutomationService:
         time.sleep(2)
         
         # Step 2: Configure video settings ONLY if different from last time
-        # Build current settings dict
+        # Normalize and build current settings dict
         current_settings = {
-            "type": type,
-            "aspect_ratio": aspect_ratio,
-            "resolution": resolution,
-            "duration": duration,
-            "variations": variations
+            "type": str(type).lower().strip() if type else "video",
+            "aspect_ratio": str(aspect_ratio).strip() if aspect_ratio else "",
+            "resolution": str(resolution).strip() if resolution else "",
+            "duration": str(duration).strip() if duration else "",
+            "variations": int(variations) if variations else 1
         }
         
         # Compare with last settings - only configure if different
+        settings_human = ", ".join([f"{k}={v}" for k, v in current_settings.items() if v])
+        
         settings_changed = current_settings != self._last_settings
         
-        if settings_changed and any([type, aspect_ratio, resolution, duration, variations]):
+        if settings_changed:
+            if not self._last_settings:
+                self.log(f"⚙️ Lần đầu cấu hình settings: {settings_human}")
+            else:
+                self.log(f"⚙️ Settings thay đổi! Diff:")
+                for k in current_settings:
+                    old_v = self._last_settings.get(k)
+                    new_v = current_settings.get(k)
+                    if old_v != new_v:
+                        self.log(f"    - {k}: '{old_v}' -> '{new_v}'")
+        
+        if settings_changed and any(current_settings.values()):
             self.log("⚙️ Settings khác với lần trước, đang cấu hình...")
             self.configure_video_settings(
-                type=type,
-                aspect_ratio=aspect_ratio,
-                resolution=resolution,
-                duration=duration,
-                variations=variations
+                type=current_settings["type"],
+                aspect_ratio=current_settings["aspect_ratio"],
+                resolution=current_settings["resolution"],
+                duration=current_settings["duration"],
+                variations=current_settings["variations"]
             )
             # Cache the new settings
             self._last_settings = current_settings.copy()
@@ -1821,11 +1895,11 @@ class SoraAutomationService:
                 prompt=row.prompt,
                 image_paths=getattr(row, 'image_paths', []) or ([row.image_path] if hasattr(row, 'image_path') and row.image_path else []),
                 output_path=output_path,
-                type=getattr(row, 'type', None),
-                aspect_ratio=getattr(row, 'aspect_ratio', None),
-                resolution=getattr(row, 'resolution', None),
-                duration=getattr(row, 'duration', None),
-                variations=getattr(row, 'variations', None),
+                type=row.type,
+                aspect_ratio=row.aspect_ratio,
+                resolution=row.resolution,
+                duration=row.duration,
+                variations=variations, # Use the sanitized local variable
                 timeout=300
             )
             
