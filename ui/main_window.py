@@ -950,8 +950,23 @@ class SoraToolApp:
             delay_between_tasks=self.delay_seconds.get()
         )
         
+        # Optimize task distribution: Sort tasks by settings to minimize browser reconfiguration
+        # We group by (type, aspect, resolution, duration, variations)
+        # Use current default values if the task doesn't have them specified
+        def get_sort_key(r):
+            return (
+                r.type or self.default_type.get(),
+                r.aspect_ratio or self.default_aspect.get(),
+                r.resolution or self.default_resolution.get(),
+                r.duration or self.default_duration.get(),
+                r.variations if r.variations is not None else int(self.default_variations.get())
+            )
+        
+        sorted_tasks = sorted(self.tasks, key=get_sort_key)
+        self._log(f"📊 Optimized task order to minimize settings changes")
+        
         # Add tasks to queue
-        for row in self.tasks:
+        for row in sorted_tasks:
             self.thread_pool.add_task(row.to_dict())
             
         # Start execution
