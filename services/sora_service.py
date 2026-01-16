@@ -45,6 +45,14 @@ class SoraAutomationService:
         self.driver.get(self.BASE_URL)
         time.sleep(3)
         
+        # PROACTIVE: Switch to old Sora immediately after login/opening
+        self.log("🔍 Đang thực hiện kiểm tra giao diện Old Sora...")
+        if self.switch_to_old_sora():
+            self._switched_to_old_sora = True
+        else:
+            self.log("⚠️ Không thể xác định hoặc chuyển đổi giao diện trong lúc khởi tạo.")
+        time.sleep(1)
+        
         
     # ==================== LOGIN CHECK ====================
     
@@ -214,7 +222,9 @@ class SoraAutomationService:
                 if self._find_prompt_input():
                     self.log("✅ Đã ở trang tạo video")
                     return True
-                self.log("🔄 Chuyển sang Old Sora...")
+                
+                # If prompt input not found, we might be on New Sora or redirect loop
+                self.log("🔄 Không thấy prompt input, kiểm tra lại giao diện...")
                 if self.switch_to_old_sora():
                     self._switched_to_old_sora = True
                 time.sleep(2)
