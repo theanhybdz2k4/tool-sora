@@ -33,6 +33,10 @@ class SoraAutomationService:
         self.log = log_callback or print
         self.wait = WebDriverWait(self.driver, 30)
         
+        # Cache flags to avoid redundant operations
+        self._switched_to_old_sora = False  # Only switch once per session
+        self._last_settings = {}  # Cache last configured settings
+        
         # Ensure download directory exists
         os.makedirs(self.download_dir, exist_ok=True)
         
@@ -79,23 +83,98 @@ class SoraAutomationService:
         """
         Switch from New Sora to Old Sora interface.
         
-        The old Sora interface is more reliable for automation.
-        Look for "Switch to old Sora" in the menu and click it.
+        New Sora indicators:
+        - Has Settings button (3 dots icon) with aria-label="Settings"
+        - Menu contains "Switch to old Sora"
+        
+        Old Sora indicators:
+        - Has "Open New Sora" button
+        - Has "Describe your image..." prompt input
         """
         self.log("🔄 Kiểm tra và chuyển sang Old Sora...")
         
         try:
-            # Check if already on old Sora (look for indicators)
+            # Check if already on old Sora by looking for indicators
             page_source = self.driver.page_source.lower()
-            if 'open new sora' in page_source:
-                self.log("✅ Đang ở Old Sora")
+            
+            # Old Sora has "Describe your image" input
+            if 'describe your image' in page_source:
+                self.log("✅ Đang ở Old Sora (có prompt input)")
                 return True
             
-            # Look for "Switch to old Sora" link/button
-            # Method 1: Find by text using XPath
+            # Old Sora has "Open New Sora" button
+            if 'open new sora' in page_source:
+                self.log("✅ Đang ở Old Sora (có Open New Sora button)")
+                return True
+            
+            # We are on New Sora - need to switch
+            self.log("🔍 Đang ở New Sora, tìm nút Settings...")
+            
+            # Method 1: Find Settings button by aria-label="Settings"
+            try:
+                settings_btn = self.driver.find_element(By.CSS_SELECTOR, 
+                    'button[aria-label="Settings"]')
+                if settings_btn.is_displayed():
+                    settings_btn.click()
+                    self.log("✅ Đã click Settings button")
+                    time.sleep(1)
+                    
+                    # Now find "Switch to old Sora" in menu
+                    try:
+                        switch_item = self.driver.find_element(By.XPATH,
+                            "//*[contains(text(), 'Switch to old Sora')]")
+                        if switch_item.is_displayed():
+                            switch_item.click()
+                            self.log("✅ Đã click 'Switch to old Sora'")
+                            time.sleep(3)
+                            return True
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+            
+            # Method 2: Find by 3 dots icon SVG (backup)
+            try:
+                # Look for buttons with SVG containing 3 circles (dots pattern)
+                dot_buttons = self.driver.find_elements(By.XPATH,
+                    "//button[.//svg and (contains(@aria-label, 'Settings') or contains(@aria-label, 'More') or contains(@aria-label, 'Menu'))]")
+                
+                for btn in dot_buttons:
+                    try:
+                        if btn.is_displayed():
+                            btn.click()
+                            self.log("✅ Đã click dot menu button")
+                            time.sleep(1)
+                            
+                            # Find Switch to old Sora
+                            switch_item = self.driver.find_element(By.XPATH,
+                                "//*[contains(text(), 'Switch to old Sora')]")
+                            if switch_item.is_displayed():
+                                switch_item.click()
+                                self.log("✅ Đã click 'Switch to old Sora' từ menu")
+                                time.sleep(3)
+                                return True
+                    except Exception:
+                        continue
+            except Exception:
+                pass
+            
+            # Method 3: Look for menu item with role="menuitem"  
+            try:
+                menu_items = self.driver.find_elements(By.CSS_SELECTOR, '[role="menuitem"]')
+                for item in menu_items:
+                    if 'switch to old sora' in item.text.lower():
+                        item.click()
+                        self.log("✅ Đã click 'Switch to old Sora' (menuitem)")
+                        time.sleep(3)
+                        return True
+            except Exception:
+                pass
+            
+            # Method 4: Click any visible element with "Switch to old Sora" text
             try:
                 switch_elem = self.driver.find_element(By.XPATH, 
-                    "//*[contains(text(), 'Switch to old Sora') or contains(text(), 'switch to old sora')]")
+                    "//*[contains(text(), 'Switch to old Sora')]")
                 if switch_elem.is_displayed():
                     switch_elem.click()
                     self.log("✅ Đã click 'Switch to old Sora'")
@@ -104,60 +183,23 @@ class SoraAutomationService:
             except Exception:
                 pass
             
-            # Method 2: Look in sidebar/menu
-            try:
-                # First click on profile/menu to open sidebar
-                menu_btns = self.driver.find_elements(By.CSS_SELECTOR, 
-                    '[aria-label*="menu" i], [aria-label*="profile" i], button svg')
-                for btn in menu_btns:
-                    try:
-                        if btn.is_displayed():
-                            btn.click()
-                            time.sleep(1)
-                            break
-                    except Exception:
-                        continue
-                
-                # Now look for Switch to old Sora in the opened menu
-                time.sleep(1)
-                switch_elem = self.driver.find_element(By.XPATH, 
-                    "//*[contains(text(), 'Switch to old Sora')]")
-                if switch_elem.is_displayed():
-                    switch_elem.click()
-                    self.log("✅ Đã click 'Switch to old Sora' từ menu")
-                    time.sleep(3)
-                    return True
-            except Exception:
-                pass
-            
-            # Method 3: Try clicking any link/button containing "old"
-            try:
-                elements = self.driver.find_elements(By.XPATH, 
-                    "//*[contains(text(), 'old') and contains(text(), 'Sora')]")
-                for elem in elements:
-                    if elem.is_displayed():
-                        elem.click()
-                        self.log("✅ Đã switch to old Sora")
-                        time.sleep(3)
-                        return True
-            except Exception:
-                pass
-            
-            self.log("ℹ️ Không thấy switch option, có thể đã ở Old Sora")
-            return True
+            self.log("⚠️ Không tìm thấy option Switch to old Sora")
+            return False
             
         except Exception as e:
             self.log(f"⚠️ Lỗi switch Sora version: {e}")
-            return True  # Continue anyway
+            return False
     
     def navigate_to_create(self) -> bool:
         """Navigate to video creation page"""
         self.log("🎬 Đang mở trang tạo video...")
         
         try:
-            # First, switch to old Sora if needed
-            self.switch_to_old_sora()
-            time.sleep(2)
+            # Switch to old Sora ONLY if not already switched this session
+            if not self._switched_to_old_sora:
+                if self.switch_to_old_sora():
+                    self._switched_to_old_sora = True
+                time.sleep(2)
             
             # Check if already on create page
             if self._find_prompt_input():
@@ -168,9 +210,11 @@ class SoraAutomationService:
             self.driver.get(self.BASE_URL)
             time.sleep(3)
             
-            # Switch to old Sora again after navigation
-            self.switch_to_old_sora()
-            time.sleep(2)
+            # Switch to old Sora again ONLY if not switched yet
+            if not self._switched_to_old_sora:
+                if self.switch_to_old_sora():
+                    self._switched_to_old_sora = True
+                time.sleep(2)
             
             # Wait for prompt input to appear (max 15 seconds)
             for _ in range(15):
@@ -1305,9 +1349,21 @@ class SoraAutomationService:
             return False
         time.sleep(2)
         
-        # Step 2: Configure video settings FIRST (before any input)
-        # Type must be configured first, then other settings
-        if any([type, aspect_ratio, resolution, duration, variations]):
+        # Step 2: Configure video settings ONLY if different from last time
+        # Build current settings dict
+        current_settings = {
+            "type": type,
+            "aspect_ratio": aspect_ratio,
+            "resolution": resolution,
+            "duration": duration,
+            "variations": variations
+        }
+        
+        # Compare with last settings - only configure if different
+        settings_changed = current_settings != self._last_settings
+        
+        if settings_changed and any([type, aspect_ratio, resolution, duration, variations]):
+            self.log("⚙️ Settings khác với lần trước, đang cấu hình...")
             self.configure_video_settings(
                 type=type,
                 aspect_ratio=aspect_ratio,
@@ -1315,7 +1371,11 @@ class SoraAutomationService:
                 duration=duration,
                 variations=variations
             )
+            # Cache the new settings
+            self._last_settings = current_settings.copy()
             time.sleep(1)
+        else:
+            self.log("⚙️ Settings giống lần trước, bỏ qua cấu hình")
         
         # Step 3: Upload images (if provided)
         if image_paths:

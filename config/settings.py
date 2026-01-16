@@ -16,6 +16,13 @@ CHROME_CACHE_DIR = BASE_DIR / "chrome_cache"
 for dir_path in [DOWNLOADS_DIR, LOGS_DIR, CHROME_CACHE_DIR]:
     dir_path.mkdir(exist_ok=True)
 
+# Browser settings for undetected_chromedriver
+PROFILES_DIR = str(BASE_DIR / "data" / "profiles")
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+PAGE_LOAD_TIMEOUT = 60
+ELEMENT_TIMEOUT = 30
+HEADLESS_MODE = False
+
 # Sora URLs
 SORA_URL = "https://sora.chatgpt.com"
 SORA_LOGIN_URL = "https://sora.chatgpt.com"

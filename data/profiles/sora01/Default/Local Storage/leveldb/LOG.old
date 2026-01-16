@@ -1,0 +1,19 @@
+2026/01/16-07:38:53.973 7c0 Reusing MANIFEST C:\Projects\Tool Auto Veo AI\tool-sora\data\profiles\sora01\Default\Local Storage\leveldb/MANIFEST-000001
+2026/01/16-07:38:53.979 7c0 Recovering log #11
+2026/01/16-07:38:53.990 7c0 Level-0 table #14: started
+2026/01/16-07:38:54.037 7c0 Level-0 table #14: 1470636 bytes OK
+2026/01/16-07:38:54.054 7c0 Delete type=0 #11
+2026/01/16-07:39:54.101 361c Level-0 table #17: started
+2026/01/16-07:39:54.130 361c Level-0 table #17: 1470431 bytes OK
+2026/01/16-07:39:54.133 361c Delete type=0 #15
+2026/01/16-07:39:54.134 361c Compacting 4@0 + 1@1 files
+2026/01/16-07:39:54.187 361c Generated table #18@0: 32 keys, 1520158 bytes
+2026/01/16-07:39:54.187 361c Compacted 4@0 + 1@1 files => 1520158 bytes
+2026/01/16-07:39:54.188 361c compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/01/16-07:39:54.189 361c Delete type=2 #7
+2026/01/16-07:39:54.189 361c Delete type=2 #9
+2026/01/16-07:39:54.189 361c Delete type=2 #12
+2026/01/16-07:39:54.189 361c Delete type=2 #14
+2026/01/16-07:39:54.189 361c Delete type=2 #17
+2026/01/16-07:47:21.949 7c0 Level-0 table #20: started
+2026/01/16-07:47:21.972 7c0 Level-0 table #20: 1469589 bytes OK

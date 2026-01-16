@@ -26,9 +26,10 @@ except ImportError:
 
 from config.settings import (
     load_settings, save_settings, load_profiles, save_profiles,
-    DOWNLOADS_DIR, LOGS_DIR, CHROME_CACHE_DIR, BASE_DIR
+    DOWNLOADS_DIR, LOGS_DIR, CHROME_CACHE_DIR, BASE_DIR, PROFILES_DIR
 )
 from core.browser import BrowserCore
+from core.profile_manager import ProfileManager, ProfileStatus, ProfileInfo
 from core.thread_pool import ThreadPoolManager, Task, TaskStatus
 from services.sheets_service import ExcelService, SheetRow, create_template_excel, GoogleSheetsService
 from services.sora_service import SoraAutomationService
@@ -50,7 +51,8 @@ class SoraToolApp:
         
         # State
         self.settings = load_settings()
-        self.profiles = load_profiles()
+        self.profile_manager = ProfileManager()  # New ProfileManager
+        self.profiles = load_profiles()  # Keep old profiles for compatibility
         self.tasks: List[SheetRow] = []
         self.is_running = False
         self.thread_pool: ThreadPoolManager = None
@@ -148,21 +150,48 @@ class SoraToolApp:
         self.task_count_label = ttk.Label(load_row, text="No tasks loaded")
         self.task_count_label.pack(side="left", padx=10)
         
-        # === Account Frame ===
-        account_frame = ttk.LabelFrame(tab, text="👤 Account", padding=10)
-        account_frame.pack(fill="x", pady=(0, 10))
+        # === Account Frame với bảng profiles ===
+        account_frame = ttk.LabelFrame(tab, text="👤 Profiles", padding=10)
+        account_frame.pack(fill="both", pady=(0, 10), expand=False)
         
-        account_row = ttk.Frame(account_frame)
-        account_row.pack(fill="x", pady=5)
+        # Bảng profiles
+        profiles_container = ttk.Frame(account_frame)
+        profiles_container.pack(fill="both", expand=True)
         
-        ttk.Label(account_row, text="Profile:").pack(side="left")
-        self.profile_combo = ttk.Combobox(account_row, width=30, state="readonly")
-        self.profile_combo.pack(side="left", padx=5)
-        # Don't call _refresh_profiles here, will be called after thread_info_label is created
+        # Treeview columns
+        columns = ("profile", "status")
+        self.profiles_tree = ttk.Treeview(profiles_container, columns=columns, show="headings", height=5)
+        self.profiles_tree.heading("profile", text="Profile")
+        self.profiles_tree.heading("status", text="Trạng thái")
+        self.profiles_tree.column("profile", width=200)
+        self.profiles_tree.column("status", width=150)
         
-        ttk.Button(account_row, text="➕ Add", command=self._add_profile).pack(side="left", padx=5)
-        ttk.Button(account_row, text="🗑️ Remove", command=self._remove_profile).pack(side="left")
-        ttk.Button(account_row, text="🔐 Login", command=self._open_browser_login).pack(side="left", padx=20)
+        # Scrollbar
+        profiles_scrollbar = ttk.Scrollbar(profiles_container, orient="vertical", command=self.profiles_tree.yview)
+        self.profiles_tree.configure(yscrollcommand=profiles_scrollbar.set)
+        
+        self.profiles_tree.pack(side="left", fill="both", expand=True)
+        profiles_scrollbar.pack(side="right", fill="y")
+        
+        # Stats label
+        self.profile_stats_label = ttk.Label(account_frame, text="✅ Sẵn sàng: 0 | ⚠️ Cần đăng nhập: 0")
+        self.profile_stats_label.pack(pady=5)
+        
+        # Buttons row 1
+        btn_row1 = ttk.Frame(account_frame)
+        btn_row1.pack(fill="x", pady=5)
+        
+        self.check_all_btn = ttk.Button(btn_row1, text="🔍 Kiểm tra tất cả", command=self._check_all_profiles)
+        self.check_all_btn.pack(side="left", padx=2)
+        ttk.Button(btn_row1, text="➕ Thêm", command=self._add_profile).pack(side="left", padx=2)
+        ttk.Button(btn_row1, text="🗑️ Xóa", command=self._remove_profile).pack(side="left", padx=2)
+        ttk.Button(btn_row1, text="🔄 Làm mới", command=self._refresh_profiles).pack(side="left", padx=2)
+        
+        # Buttons row 2
+        btn_row2 = ttk.Frame(account_frame)
+        btn_row2.pack(fill="x", pady=2)
+        
+        ttk.Button(btn_row2, text="🌐 Mở browser để đăng nhập", command=self._open_browser_login).pack(side="left", padx=2)
         
         # === Execution Frame ===
         exec_frame = ttk.LabelFrame(tab, text="⚡ Execution", padding=10)
@@ -589,39 +618,88 @@ class SoraToolApp:
         self.tasks_tree.selection_remove(*self.tasks_tree.selection())
         
     def _refresh_profiles(self):
-        """Refresh profile combobox"""
-        self.profiles = load_profiles()  # Reload from file
-        profile_list = list(self.profiles.keys())
-        self.profile_combo["values"] = profile_list
-        if profile_list:
-            self.profile_combo.current(0)
-        # Update thread limit based on number of profiles
+        """Refresh profiles table with ProfileManager data"""
+        # Clear existing
+        for item in self.profiles_tree.get_children():
+            self.profiles_tree.delete(item)
+        
+        # Get profiles from ProfileManager
+        profiles = self.profile_manager.get_all_profiles()
+        
+        logged_in_count = 0
+        needs_login_count = 0
+        
+        for profile in profiles:
+            # Status icon and text
+            status_icon = self.profile_manager.get_status_icon(profile.status)
+            status_text = self.profile_manager.get_status_text(profile.status)
+            
+            # Insert into treeview
+            self.profiles_tree.insert("", "end", values=(
+                f"{status_icon} {profile.name}",
+                status_text
+            ))
+            
+            # Count stats
+            if profile.status == ProfileStatus.LOGGED_IN:
+                logged_in_count += 1
+            else:
+                needs_login_count += 1
+        
+        # Update stats label
+        self.profile_stats_label.config(
+            text=f"✅ Sẵn sàng: {logged_in_count} | ⚠️ Cần đăng nhập: {needs_login_count}"
+        )
+        
+        # Also sync with old profiles dict for compatibility
+        self.profiles = load_profiles()
+        
+        # Update thread limit
         self._update_thread_limit()
             
     def _add_profile(self):
-        """Add new profile"""
-        name = tk.simpledialog.askstring("New Profile", "Enter profile name:")
+        """Add new profile using ProfileManager"""
+        name = tk.simpledialog.askstring("Tạo Profile", "Nhập tên profile mới:")
         if name:
-            self.profiles[name] = {
-                "cache_dir": str(CHROME_CACHE_DIR / name.replace(" ", "_"))
-            }
-            save_profiles(self.profiles)
-            self._refresh_profiles()
-            self._log(f"👤 Profile added: {name}")
+            name = name.strip()
+            if self.profile_manager.create_profile(name):
+                # Also add to old profiles dict for compatibility
+                self.profiles[name] = {
+                    "cache_dir": str(CHROME_CACHE_DIR / name.replace(" ", "_"))
+                }
+                save_profiles(self.profiles)
+                self._refresh_profiles()
+                self._log(f"👤 Đã tạo profile: {name}")
+            else:
+                messagebox.showwarning("Lỗi", "Profile đã tồn tại!")
+    
+    def _get_selected_profile_name(self):
+        """Lấy tên profile đang được chọn trong bảng"""
+        selected = self.profiles_tree.selection()
+        if selected:
+            # Lấy text từ cột đầu tiên, bỏ icon
+            item = self.profiles_tree.item(selected[0])
+            text = item["values"][0]
+            # Bỏ icon ở đầu (emoji + space)
+            return text.split(" ", 1)[-1] if " " in text else text
+        return None
     
     def _update_thread_limit(self):
-        """Update thread count limit based on available profiles"""
+        """Update thread count limit based on LOGGED IN profiles only"""
         # Check if thread_info_label exists (may not exist during initialization)
         if not hasattr(self, 'thread_info_label') or self.thread_info_label is None:
             return
         
-        num_profiles = len(self.profiles)
-        if num_profiles == 0:
+        # Only count profiles that are logged in
+        logged_in_profiles = self.profile_manager.get_logged_in_profiles()
+        num_logged_in = len(logged_in_profiles)
+        
+        if num_logged_in == 0:
             max_threads = 1
-            self.thread_info_label.config(text="(Cần ít nhất 1 profile)", foreground="orange")
+            self.thread_info_label.config(text="(Cần ít nhất 1 profile đã đăng nhập)", foreground="orange")
         else:
-            max_threads = num_profiles
-            self.thread_info_label.config(text=f"(Max: {max_threads} profiles)", foreground="gray")
+            max_threads = num_logged_in
+            self.thread_info_label.config(text=f"(Có {num_logged_in} profile sẵn sàng)", foreground="green")
         
         # Update spinbox max value
         current_value = self.thread_count.get()
@@ -632,74 +710,135 @@ class SoraToolApp:
         if hasattr(self, 'thread_spinbox') and self.thread_spinbox is not None:
             self.thread_spinbox.config(to=max_threads)
             
+    
     def _remove_profile(self):
-        """Remove selected profile"""
-        name = self.profile_combo.get()
-        if name and messagebox.askyesno("Xác nhận", f"Bạn có chắc muốn xóa profile '{name}'?\nToàn bộ dữ liệu browser của profile này sẽ bị xóa vĩnh viễn."):
-            # Delete directory content
-            # Remove from list
-            if name in self.profiles:
-                try:
-                    profile = self.profiles[name]
-                    # Determine cache directory
-                    # Note: We reconstruct the default path logic here to be safe
-                    # Only delete if it looks like a valid profile path inside CHROME_CACHE_DIR to avoid accidents
-                    cache_dir = profile.get("cache_dir")
-                    if not cache_dir:
-                        cache_dir = str(CHROME_CACHE_DIR / name)
-                    
-                    # Convert to Path object for safety checks
-                    cache_path = Path(cache_dir)
-                    
-                    # Safety check: Ensure it is inside CHROME_CACHE_DIR or specifically defined
-                    # We only proceed if it exists
-                    if cache_path.exists():
-                        self._log(f"Đang xóa dữ liệu profile: {cache_path}")
-                        shutil.rmtree(cache_path)
-                    else:
-                        self._log(f"Không tìm thấy thư mục profile: {cache_path}")
-
-                    # Remove from list inside the block
+        """Remove selected profile using ProfileManager"""
+        name = self._get_selected_profile_name()
+        if not name:
+            messagebox.showwarning("Lỗi", "Vui lòng chọn profile để xóa")
+            return
+            
+        if messagebox.askyesno("Xác nhận", f"Bạn có chắc muốn xóa profile '{name}'?\nToàn bộ dữ liệu browser của profile này sẽ bị xóa vĩnh viễn."):
+            if self.profile_manager.delete_profile(name):
+                # Also remove from old profiles dict
+                if name in self.profiles:
                     del self.profiles[name]
                     save_profiles(self.profiles)
-                    self._refresh_profiles()
-                    self._log(f"🗑️ Profile removed: {name}")
+                self._refresh_profiles()
+                self._log(f"🗑️ Đã xóa profile: {name}")
+            else:
+                messagebox.showerror("Lỗi", "Không thể xóa profile!")
+    
+    def _check_all_profiles(self):
+        """Kiểm tra đăng nhập của TẤT CẢ profiles"""
+        profiles = self.profile_manager.get_all_profiles()
+        
+        if not profiles:
+            messagebox.showwarning("Lỗi", "Chưa có profile nào!")
+            return
+        
+        if not messagebox.askyesno(
+            "Xác nhận",
+            f"Sẽ kiểm tra đăng nhập cho {len(profiles)} profile(s).\n"
+            "Mỗi profile sẽ mở browser ẩn, kiểm tra và tự động đóng.\n\n"
+            "Tiếp tục?"
+        ):
+            return
+        
+        self.check_all_btn.config(state="disabled", text="🔄 Đang kiểm tra...")
+        
+        # Đánh dấu tất cả đang checking
+        for p in profiles:
+            self.profile_manager.set_status(p.name, ProfileStatus.CHECKING)
+        self._refresh_profiles()
+        
+        def check_all_thread():
+            import time
+            logged_in = 0
+            not_logged_in = 0
+            
+            for profile in profiles:
+                profile_name = profile.name
+                self._log(f"🔍 Đang kiểm tra: {profile_name}")
+                
+                browser = None
+                try:
+                    browser = BrowserCore(profile_name=profile_name, headless=True)
+                    browser.init_browser()
+                    browser.navigate(SoraAutomationService.BASE_URL)
+                    
+                    time.sleep(3)
+                    
+                    sora = SoraAutomationService(browser, log_callback=self._log)
+                    is_logged = sora.is_logged_in()
+                    
+                    if is_logged:
+                        self.profile_manager.mark_as_logged_in(profile_name)
+                        self._log(f"✅ {profile_name}: Đã đăng nhập")
+                        logged_in += 1
+                    else:
+                        self.profile_manager.mark_as_not_logged_in(profile_name)
+                        self._log(f"❌ {profile_name}: Chưa đăng nhập")
+                        not_logged_in += 1
+                    
                 except Exception as e:
-                    self._log(f"❌ Lỗi khi xóa dữ liệu profile: {e}")
-                    messagebox.showerror("Lỗi", f"Không thể xóa dữ liệu profile:\n{e}")
-                    return
-
-            # Update thread count if it exceeds available profiles
-            if self.thread_count.get() > len(self.profiles):
-                self.thread_count.set(len(self.profiles) if self.profiles else 1)
+                    self._log(f"❌ {profile_name}: Lỗi - {e}")
+                    self.profile_manager.mark_as_not_logged_in(profile_name)
+                    not_logged_in += 1
+                
+                finally:
+                    if browser:
+                        try:
+                            browser.close()
+                        except:
+                            pass
+                
+                # Update UI after each profile
+                self.root.after(0, self._refresh_profiles)
+            
+            # Hoàn thành
+            def on_complete():
+                self.check_all_btn.config(state="normal", text="🔍 Kiểm tra tất cả")
+                self._refresh_profiles()
+                messagebox.showinfo(
+                    "Hoàn thành",
+                    f"Đã kiểm tra {logged_in + not_logged_in} profile(s):\n\n"
+                    f"✅ Đã đăng nhập: {logged_in}\n"
+                    f"❌ Chưa đăng nhập: {not_logged_in}"
+                )
+            
+            self.root.after(0, on_complete)
+        
+        threading.Thread(target=check_all_thread, daemon=True).start()
             
     def _open_browser_login(self):
         """Open browser for manual login"""
-        profile_name = self.profile_combo.get()
-        if not profile_name:
-            messagebox.showwarning("Warning", "Please select or create a profile")
+        name = self._get_selected_profile_name()
+        if not name:
+            messagebox.showwarning("Lỗi", "Vui lòng chọn profile để đăng nhập")
             return
-            
-        profile = self.profiles.get(profile_name, {})
-        cache_dir = profile.get("cache_dir", str(CHROME_CACHE_DIR / profile_name))
+        
+        self._log(f"🌐 Đang mở browser cho profile: {name}")
         
         def login_thread():
             try:
-                browser = BrowserCore(cache_dir=cache_dir, log_callback=self._log)
-                browser.build_driver()
+                browser = BrowserCore(profile_name=name)
+                browser.init_browser()
                 browser.navigate(SoraAutomationService.BASE_URL)
-                self._log(f"🔐 Browser opened for login. Please login manually.")
+                self._log(f"🔐 Đã mở browser. Vui lòng đăng nhập thủ công.")
                 
                 # Wait for user to login
                 sora = SoraAutomationService(browser, log_callback=self._log)
                 if sora.wait_for_manual_login(timeout=300):
-                    self._log("✅ Login successful! You can close the browser.")
-                    messagebox.showinfo("Success", "Login successful! Profile saved.")
+                    self.profile_manager.mark_as_logged_in(name)
+                    self.root.after(0, self._refresh_profiles)
+                    self._log("✅ Đăng nhập thành công!")
+                    self.root.after(0, lambda: messagebox.showinfo("Thành công", "Đăng nhập thành công! Profile đã được lưu."))
                 else:
-                    self._log("⚠️ Login timeout")
+                    self._log("⚠️ Hết thời gian chờ đăng nhập")
                     
             except Exception as e:
-                self._log(f"❌ Login error: {e}")
+                self._log(f"❌ Lỗi đăng nhập: {e}")
                 
         threading.Thread(target=login_thread, daemon=True).start()
         
@@ -830,18 +969,16 @@ class SoraToolApp:
             if not profile:
                 raise ValueError(f"Profile '{profile_name}' not found")
             
-            # CRITICAL: Mỗi thread dùng 1 profile riêng, không chia sẻ cache_dir
+            # CRITICAL: Mỗi thread dùng 1 profile riêng
             # Mỗi profile chỉ được sử dụng bởi 1 thread tại một thời điểm
-            cache_dir = profile.get("cache_dir", str(CHROME_CACHE_DIR / profile_name))
             
             self._log(f"[T{thread_id}] Sử dụng profile: {profile_name}")
             
             browser = BrowserCore(
-                cache_dir=cache_dir,
-                headless=self.headless_var.get(),
-                log_callback=lambda msg: self._log(f"[T{thread_id}|{profile_name}] {msg}")
+                profile_name=profile_name,
+                headless=self.headless_var.get()
             )
-            browser.build_driver()
+            browser.init_browser()
             self.browser_instances[thread_id] = browser
             
             sora = SoraAutomationService(
