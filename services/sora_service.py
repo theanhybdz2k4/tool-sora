@@ -191,30 +191,46 @@ class SoraAutomationService:
             return False
     
     def navigate_to_create(self) -> bool:
-        """Navigate to video creation page"""
-        self.log("🎬 Đang mở trang tạo video...")
+        """Navigate to video creation page - OPTIMIZED to avoid Cloudflare"""
         
         try:
+            # Check if already on correct page (avoid unnecessary navigation)
+            current_url = self.driver.current_url
+            
+            # If already on create page with prompt input, no need to navigate
+            if 'sora.chatgpt.com' in current_url:
+                # Check for Cloudflare challenge first
+                if self._is_cloudflare_challenge():
+                    self.log("⚠️ Cloudflare challenge detected! Waiting...")
+                    self._wait_for_cloudflare()
+                
+                # Check if prompt input exists = already on create page
+                if self._find_prompt_input():
+                    self.log("✅ Đã ở trang tạo video")
+                    return True
+            
             # Switch to old Sora ONLY if not already switched this session
             if not self._switched_to_old_sora:
+                self.log("🔄 Chuyển sang Old Sora...")
                 if self.switch_to_old_sora():
                     self._switched_to_old_sora = True
                 time.sleep(2)
+                
+                # Re-check after switch
+                if self._find_prompt_input():
+                    self.log("✅ Đã ở trang tạo video")
+                    return True
             
-            # Check if already on create page
-            if self._find_prompt_input():
-                self.log("✅ Đã ở trang tạo video")
-                return True
-            
-            # Navigate to main page
-            self.driver.get(self.BASE_URL)
-            time.sleep(3)
-            
-            # Switch to old Sora again ONLY if not switched yet
-            if not self._switched_to_old_sora:
-                if self.switch_to_old_sora():
-                    self._switched_to_old_sora = True
-                time.sleep(2)
+            # Only navigate if NOT already on sora domain
+            if 'sora.chatgpt.com' not in current_url:
+                self.log("🌐 Navigating to Sora...")
+                self.driver.get(self.BASE_URL)
+                time.sleep(3)
+                
+                # Handle Cloudflare if appeared
+                if self._is_cloudflare_challenge():
+                    self.log("⚠️ Cloudflare challenge detected! Waiting...")
+                    self._wait_for_cloudflare()
             
             # Wait for prompt input to appear (max 15 seconds)
             for _ in range(15):
@@ -229,6 +245,34 @@ class SoraAutomationService:
         except Exception as e:
             self.log(f"❌ Lỗi navigation: {e}")
             return False
+    
+    def _is_cloudflare_challenge(self) -> bool:
+        """Check if Cloudflare challenge page is displayed"""
+        try:
+            page_source = self.driver.page_source.lower()
+            indicators = [
+                'cloudflare',
+                'xác minh bạn là con người',
+                'verify you are human',
+                'checking your browser',
+                'ray id:'
+            ]
+            return any(ind in page_source for ind in indicators)
+        except:
+            return False
+    
+    def _wait_for_cloudflare(self, timeout: int = 60) -> bool:
+        """Wait for Cloudflare challenge to be solved (manual or auto)"""
+        self.log("⏳ Đang chờ vượt Cloudflare... (tự động hoặc bấm checkbox)")
+        start = time.time()
+        while time.time() - start < timeout:
+            if not self._is_cloudflare_challenge():
+                self.log("✅ Đã vượt Cloudflare!")
+                time.sleep(2)
+                return True
+            time.sleep(2)
+        self.log("⚠️ Timeout chờ Cloudflare")
+        return False
     
     def _find_prompt_input(self):
         """Find the prompt input field - Sora uses 'Describe your video...'"""
@@ -879,7 +923,7 @@ class SoraAutomationService:
         self.log(f"📊 Số video hiện có: {initial_count}")
         
         last_count = initial_count
-        refresh_interval = 5 # Refresh every 5 seconds 
+        refresh_interval = 15  # Refresh every 15 seconds to avoid Cloudflare
         last_refresh_time = time.time() - refresh_interval 
         
         while time.time() - start_time < timeout:
@@ -887,12 +931,18 @@ class SoraAutomationService:
                 elapsed = int(time.time() - start_time)
                 current_time = time.time()
                 
-                # Refresh page every 5 seconds to check progress
+                # Refresh page every 15 seconds to check progress (less frequent to avoid Cloudflare)
                 if current_time - last_refresh_time >= refresh_interval:
                     self.log(f"⏳ Đã chờ {elapsed}s... Refreshing...")
                     self.driver.refresh()
-                    time.sleep(2)  # Wait for page to load
-                    last_refresh_time = time.time()  # Update after refresh completes
+                    time.sleep(3)  # Wait for page to load
+                    
+                    # Check for Cloudflare after refresh
+                    if self._is_cloudflare_challenge():
+                        self.log("⚠️ Cloudflare challenge! Waiting...")
+                        self._wait_for_cloudflare()
+                    
+                    last_refresh_time = time.time()
                 
                 # Check notification bell for completion indicator
                 if self._check_notification_bell():
