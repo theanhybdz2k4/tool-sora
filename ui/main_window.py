@@ -950,9 +950,8 @@ class SoraToolApp:
             delay_between_tasks=self.delay_seconds.get()
         )
         
-        # Optimize task distribution: Sort tasks by settings to minimize browser reconfiguration
-        # We group by (type, aspect, resolution, duration, variations)
-        # Use current default values if the task doesn't have them specified
+        # Optimize task distribution: Sort then Interleave (Striping)
+        # 1. Sort tasks by settings
         def get_sort_key(r):
             return (
                 r.type or self.default_type.get(),
@@ -963,10 +962,31 @@ class SoraToolApp:
             )
         
         sorted_tasks = sorted(self.tasks, key=get_sort_key)
-        self._log(f"📊 Optimized task order to minimize settings changes")
         
-        # Add tasks to queue
-        for row in sorted_tasks:
+        # 2. Distribute into buckets (one per thread) and interleave
+        # This ensures Thread 1 pulls [T1, T(1+N), ...] which are similar settings
+        interleaved_tasks = []
+        num_tasks = len(sorted_tasks)
+        
+        # Calculate items per bucket
+        items_per_bucket = (num_tasks + actual_threads - 1) // actual_threads
+        buckets = []
+        for i in range(actual_threads):
+            start_idx = i * items_per_bucket
+            end_idx = min(start_idx + items_per_bucket, num_tasks)
+            buckets.append(sorted_tasks[start_idx:end_idx])
+            
+        # Interleave buckets into final queue
+        # [Bucket1[0], Bucket2[0], ..., BucketN[0], Bucket1[1], ...]
+        for i in range(items_per_bucket):
+            for b in range(actual_threads):
+                if i < len(buckets[b]):
+                    interleaved_tasks.append(buckets[b][i])
+        
+        self._log(f"📊 Optimized task distribution (Striping) for {actual_threads} threads")
+        
+        # Add interleaved tasks to queue
+        for row in interleaved_tasks:
             self.thread_pool.add_task(row.to_dict())
             
         # Start execution

@@ -1023,14 +1023,9 @@ class SoraAutomationService:
             self.log(f"⚠️ Không thể set {option_type}: {e}")
             return False
     
-    def wait_for_generation(self, prompt: str = None, timeout: int = 300, expected_count: int = 1) -> bool:
+    def wait_for_generation(self, prompt: str = None, timeout: int = 300, expected_count: int = 1) -> Optional[List[str]]:
         """
-        Wait for generation to complete based on item count or prompt matching.
-        
-        Args:
-            prompt: Prompt content to verify correctness (optional)
-            timeout: Max wait time in seconds
-            expected_count: Number of variations expected to find (default 1)
+        Wait for generation to complete and return list of HREFs for NEW items.
         """
         self.log(f"⏳ Đang chờ tạo kết quả... (timeout: {timeout}s, expected: {expected_count} items)")
         start_time = time.time()
@@ -1106,9 +1101,20 @@ class SoraAutomationService:
                             if len(new_matches) < expected_count:
                                 self.log(f"⚠️ Mới tìm thấy {len(new_matches)}/{expected_count} items. Đợi thêm...")
                                 continue
+                            
                             self.log(f"✅ Tìm thấy {len(new_matches)} kết quả mới đã hoàn thành!")
-                            return True
-                        # If not ready, continue waiting loop (refresh will happen)
+                            
+                            # Return list of HREFs
+                            new_hrefs = []
+                            for m in new_matches:
+                                try:
+                                    href = m.get_attribute("href")
+                                    if not href:
+                                        href = m.find_element(By.TAG_NAME, "a").get_attribute("href")
+                                    if href: new_hrefs.append(href)
+                                except: pass
+                            return new_hrefs if new_hrefs else None
+                    # If not ready, continue waiting loop (refresh will happen)
                 
                 # Refresh page every 15 seconds
                 if current_time - last_refresh_time >= refresh_interval:
@@ -1188,7 +1194,7 @@ class SoraAutomationService:
             time.sleep(2)
         
         self.log("⏰ Timeout - chưa tìm thấy kết quả khớp")
-        return False
+        return None
     
     def _find_matching_items(self, prompt: str) -> list:
         """Find ALL video/image items that match the prompt"""
@@ -1295,30 +1301,40 @@ class SoraAutomationService:
         
         # Step 6: Wait for generation
         # Pass variations count so we wait for ALL items to appear
-        wait_success = self.wait_for_generation(prompt=prompt, expected_count=variations)
+        # wait_for_generation now returns the list of NEW item HREFs
+        new_item_hrefs = self.wait_for_generation(prompt=prompt, expected_count=limit)
         
-        if not wait_success:
-            self.log("❌ Timeout chờ tạo video")
+        if not new_item_hrefs:
+            self.log("❌ Không tìm thấy kết quả mới sau khi chờ")
             # Try to recover by navigating back
             self._navigate_back_to_create()
             time.sleep(3) # Wait for library to reload
             return False
-        
-        for i in range(limit):
-            # 1. Find items matching prompt - Must RE-FIND every time because of page navigation
-            items = self._find_matching_items(prompt)
             
-            # If not enough items found, stop
-            if not items or i >= len(items):
-                self.log(f"⚠️ Chỉ tìm thấy {len(items)} items khớp prompt (cần {limit})")
-                if i > 0: break # Downloaded some already
-                
-            # Get the correct item (newest first? Sora puts newest at top/left)
-            # Index 0 is newest. If we want to download all, we should iterate.
-            # Usually variations appear as adjacent items.
-            target_item = items[i]
+        self.log(f"🔍 Đã xác định được {len(new_item_hrefs)} items để tải")
+        
+        for i in range(min(limit, len(new_item_hrefs))):
+            target_href = new_item_hrefs[i]
             
             try:
+                # 1. Find item by HREF - This is MUCH more reliable than prompt matching in a loop
+                try:
+                    target_item = self.driver.find_element(By.CSS_SELECTOR, f'a[href="{target_href}"]')
+                except:
+                    # If not found (maybe virtual list scrolled), try to re-find matching items once
+                    current_matches = self._find_matching_items(prompt)
+                    target_item = None
+                    for m in current_matches:
+                        try:
+                            if m.get_attribute("href") == target_href:
+                                target_item = m
+                                break
+                        except: continue
+                
+                if not target_item:
+                    self.log(f"⚠️ Không tìm thấy item {i+1} với link: {target_href}")
+                    continue
+            
                 # Check for error status (Task Failed)
                 href = target_item.get_attribute("href") or ""
                 if "/t/task_" in href:
@@ -1331,24 +1347,26 @@ class SoraAutomationService:
                 time.sleep(3)
                 
                 # 3. Determine filename
-                # output_base_path is like ".../tom/tom"
-                # If limit > 1, append index: ".../tom/tom_01.mp4"
-                # If limit == 1, keep as is: ".../tom/tom.mp4"
-                
+                # If limit > 1, append index: ".../tom/tom_01" (extension handled later)
                 current_output = output_base_path
                 if limit > 1:
                      current_output = f"{output_base_path}_{i+1:02d}"
                 
-                # Append extension (download_video will fix if image)
+                # Default extension to .mp4 (will be corrected by _download_from_url if it's an image)
                 current_output += ".mp4"
                 
                 # 4. Download
+                # download_video will call _download_from_url which handles extension correction
                 if self.download_video(current_output):
                     success_count += 1
+                    self.log(f"✅ Downloaded variation {i+1}")
+                else:
+                    self.log(f"⚠️ Failed to download variation {i+1}")
                     
-                # 5. Back to library
-                self._navigate_back_to_create()
-                time.sleep(3) # Wait for library to reload
+                # 5. Back to library (only if there are more to download)
+                if i < limit - 1:
+                    self._navigate_back_to_create()
+                    time.sleep(3) # Wait for library to reload
                 
             except Exception as e:
                 self.log(f"⚠️ Error downloading item {i+1}: {e}")
@@ -1720,6 +1738,19 @@ class SoraAutomationService:
             
             response = requests.get(url, cookies=cookies, stream=True, timeout=120)
             response.raise_for_status()
+            
+            # Check Content-Type to correct extension if needed
+            content_type = response.headers.get('Content-Type', '').lower()
+            base, ext = os.path.splitext(output_path)
+            
+            if 'image' in content_type and ext.lower() not in ['.png', '.jpg', '.jpeg', '.webp']:
+                output_path = f"{base}.png"
+                self.log(f"🖼️ Detected image content type, changing extension to .png")
+            elif 'video' in content_type and ext.lower() not in ['.mp4', '.mov', '.webm']:
+                output_path = f"{base}.mp4"
+                self.log(f"📹 Detected video content type, changing extension to .mp4")
+                
+            self.log(f"💾 Lưu file tại: {output_path}")
             
             # Get content length for validation
             content_length = response.headers.get('Content-Length')
