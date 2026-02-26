@@ -33,6 +33,8 @@ from core.profile_manager import ProfileManager, ProfileStatus, ProfileInfo
 from core.thread_pool import ThreadPoolManager, Task, TaskStatus
 from services.sheets_service import ExcelService, SheetRow, create_template_excel, GoogleSheetsService
 from services.sora_service import SoraAutomationService
+from services.update_service import UpdateService
+from config.settings import VERSION
 
 
 class SoraToolApp:
@@ -45,9 +47,12 @@ class SoraToolApp:
         else:
             self.root = tk.Tk()
             
-        self.root.title("🎬 Sora Automation Tool")
-        self.root.geometry("1200x800")
+        self.root.title(f"🎬 Sora Automation Tool v{VERSION}")
+        self.root.geometry("1100x750")
         self.root.minsize(900, 600)
+        
+        # Update Service
+        self.update_service = UpdateService(log_callback=self._log)
         
         # State
         self.settings = load_settings()
@@ -482,6 +487,14 @@ class SoraToolApp:
         text.pack(fill="both", expand=True)
         text.insert("1.0", help_text)
         text.config(state="disabled")
+
+        # Update section
+        update_frame = ttk.LabelFrame(tab, text="🆙 Cập nhật", padding=10)
+        update_frame.pack(fill="x", pady=(10, 0))
+        
+        ttk.Label(update_frame, text=f"Phiên bản hiện tại: {VERSION}").pack(side="left", padx=5)
+        self.btn_check_update = ttk.Button(update_frame, text="🔍 Kiểm tra cập nhật", command=self._check_update)
+        self.btn_check_update.pack(side="right", padx=5)
         
     # ==================== Event Handlers ====================
     
@@ -1164,9 +1177,51 @@ class SoraToolApp:
         finally:
             self.root.after(100, self._process_log_queue)
             
+    def _check_update(self, silent=False):
+        """Check for updates"""
+        def thread_task():
+            if self.update_service.check_for_updates():
+                latest = self.update_service.update_info.get("version", "mới")
+                msg = f"Đã có phiên bản mới: {latest}\nBạn có muốn cập nhật ngay không?"
+                if messagebox.askyesno("Cập nhật", msg):
+                    self.root.after(0, self._start_update_process)
+            elif not silent:
+                self.root.after(0, lambda: messagebox.showinfo("Cập nhật", "Bạn đang sử dụng phiên bản mới nhất."))
+        
+        threading.Thread(target=thread_task, daemon=True).start()
+
+    def _start_update_process(self):
+        """Download and run updater"""
+        progress_win = tk.Toplevel(self.root)
+        progress_win.title("Đang tải cập nhật")
+        progress_win.geometry("400x150")
+        progress_win.transient(self.root)
+        progress_win.grab_set()
+        
+        ttk.Label(progress_win, text="Đang tải bản cập nhật mới, vui lòng chờ...").pack(pady=20)
+        progress_bar = ttk.Progressbar(progress_win, mode='determinate', length=300)
+        progress_bar.pack(pady=10)
+        
+        def update_task():
+            def progress_hook(p):
+                progress_bar['value'] = p * 100
+                self.root.update_idletasks()
+
+            if self.update_service.download_and_prepare_update(progress_callback=progress_hook):
+                self.root.after(0, progress_win.destroy)
+                if messagebox.showinfo("Hoàn tất", "Tải về hoàn tất. Ứng dụng sẽ đóng để thực hiện cập nhật."):
+                    self.update_service.run_update()
+            else:
+                self.root.after(0, progress_win.destroy)
+                self.root.after(0, lambda: messagebox.showerror("Lỗi", "Không thể tải bản cập nhật."))
+
+        threading.Thread(target=update_task, daemon=True).start()
+
     def run(self):
         """Start the application"""
         self._log("🎬 Sora Automation Tool started")
+        # Check update on start
+        self._check_update(silent=True)
         self.root.mainloop()
 
 
