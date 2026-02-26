@@ -152,7 +152,11 @@ class BrowserCore:
             logger.info(f"URL hiện tại sau điều hướng: {actual_url}")
             return True
         except Exception as e:
-            logger.error(f"Lỗi điều hướng: {e}")
+            err_str = str(e).lower()
+            if "connection refused" in err_str or "10061" in err_str:
+                logger.error(f"❌ Mất kết nối trình duyệt (WinError 10061): {url}")
+            else:
+                logger.error(f"Lỗi điều hướng: {e}")
             return False
     
     def wait_for_element(self, selector: str, timeout: int = None, by: By = By.CSS_SELECTOR) -> Optional[object]:

@@ -1204,6 +1204,10 @@ class SoraAutomationService:
                         return new_hrefs if new_hrefs else None
                 
             except Exception as e:
+                err_str = str(e).lower()
+                if "connection refused" in err_str or "10061" in err_str or "max retries exceeded" in err_str:
+                    self.log("❌ Mất kết nối với trình duyệt (Trình duyệt có thể đã bị đóng hoặc crash).")
+                    return None
                 self.log(f"⚠️ Check error: {e}")
             
             time.sleep(2)
