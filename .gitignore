@@ -12,7 +12,8 @@ venv_*
 dist/
 build/
 
-# Chrome cache
+# Profiles & Data
+data/
 chrome_cache/
 
 # Downloads
