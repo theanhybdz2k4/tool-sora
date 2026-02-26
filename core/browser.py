@@ -13,6 +13,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
+import winreg
 
 from config.settings import (
     PROFILES_DIR, USER_AGENT, PAGE_LOAD_TIMEOUT, 
@@ -20,6 +21,36 @@ from config.settings import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def get_chrome_main_version() -> Optional[int]:
+    """Lấy phiên bản chính (main version) của Chrome đang cài đặt trên Windows"""
+    paths = [
+        r"SOFTWARE\Google\Chrome\BLBeacon",
+        r"SOFTWARE\WOW6432Node\Google\Chrome\BLBeacon",
+    ]
+    for path in paths:
+        try:
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, path) as key:
+                version, _ = winreg.QueryValueEx(key, "version")
+                main_version = int(version.split(".")[0])
+                logger.info(f"Đã phát hiện Chrome phiên bản: {main_version}")
+                return main_version
+        except (FileNotFoundError, OSError, ValueError):
+            continue
+            
+    try:
+        # Fallback: Kiểm tra User-specific install
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Google\Chrome\BLBeacon") as key:
+            version, _ = winreg.QueryValueEx(key, "version")
+            main_version = int(version.split(".")[0])
+            logger.info(f"Đã phát hiện Chrome phiên bản (User): {main_version}")
+            return main_version
+    except (FileNotFoundError, OSError, ValueError):
+        pass
+        
+    logger.warning("Không thể tự động phát hiện phiên bản Chrome")
+    return None
 
 
 class BrowserCore:
@@ -69,9 +100,20 @@ class BrowserCore:
                     options.add_argument("--headless=new")
                     logger.info("Chạy ở chế độ headless")
                 
-                self.driver = uc.Chrome(options=options)
+                # Tự động phát hiện version
+                chrome_version = get_chrome_main_version()
+                if chrome_version:
+                    self.driver = uc.Chrome(options=options, version_main=chrome_version)
+                else:
+                    # Nếu không tìm thấy, để undetected_chromedriver tự quyết định (fallback)
+                    self.driver = uc.Chrome(options=options)
+                    
                 self.driver.set_page_load_timeout(PAGE_LOAD_TIMEOUT)
-                logger.info("Khởi tạo browser thành công")
+                
+                # Chờ một chút để driver sẵn sàng hoàn toàn
+                time.sleep(1)
+                
+                logger.info(f"Khởi tạo browser thành công với profile: {self.profile_name}")
                 return self.driver
                 
             except Exception as e:
@@ -104,7 +146,10 @@ class BrowserCore:
         try:
             logger.info(f"Đang điều hướng đến: {url}")
             self.driver.get(url)
-            time.sleep(2)  # Chờ page load
+            # Log verify xem đã thực sự ở page đó chưa
+            time.sleep(2)
+            actual_url = self.driver.current_url
+            logger.info(f"URL hiện tại sau điều hướng: {actual_url}")
             return True
         except Exception as e:
             logger.error(f"Lỗi điều hướng: {e}")

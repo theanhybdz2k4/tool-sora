@@ -773,10 +773,8 @@ class SoraToolApp:
                 try:
                     browser = BrowserCore(profile_name=profile_name, headless=True)
                     browser.init_browser()
-                    browser.navigate(SoraAutomationService.BASE_URL)
                     
-                    time.sleep(3)
-                    
+                    time.sleep(1)
                     sora = SoraAutomationService(browser, log_callback=self._log)
                     is_logged = sora.is_logged_in()
                     
@@ -832,8 +830,8 @@ class SoraToolApp:
             try:
                 browser = BrowserCore(profile_name=name)
                 browser.init_browser()
-                browser.navigate(SoraAutomationService.BASE_URL)
-                self._log(f"🔐 Đã mở browser. Vui lòng đăng nhập thủ công.")
+                # SoraAutomationService sẽ tự động navigate đến BASE_URL
+                self._log(f"🔐 Đã mở browser. Đang điều hướng đến Sora...")
                 
                 # Wait for user to login
                 sora = SoraAutomationService(browser, log_callback=self._log)

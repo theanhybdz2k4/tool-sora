@@ -1132,8 +1132,11 @@ class SoraAutomationService:
                         for link in failed_links:
                             href = link.get_attribute("href")
                             if href and href not in initial_ids:
-                                self.log(f"⚠️ Phát hiện tác vụ lỗi MỚI (ID: {href[-10:]})! Dừng chờ.")
-                                return True # Treat as completion (will be handled as error in download)
+                                 self.log(f"⚠️ Phát hiện tác vụ lỗi MỚI (ID: {href[-10:]})! Dừng chờ.")
+                                 # Return current new items found
+                                 new_items_err = self.driver.find_elements(By.CSS_SELECTOR, 'a[href*="/g/gen_"], a[href*="/t/task_"]')
+                                 new_hrefs_err = [el.get_attribute('href') for el in new_items_err if el.get_attribute('href') and el.get_attribute('href') not in initial_ids]
+                                 return new_hrefs_err if new_hrefs_err else [href]
                     except: pass
 
                     # 2. Re-check prompt matches immediately after refresh
@@ -1168,11 +1171,20 @@ class SoraAutomationService:
                                     txt = m.text.lower()
                                     if "/t/task_" in href or "error" in txt:
                                         self.log("⚠️ Phát hiện kết quả bị Lỗi!")
-                                        return True # Return true to proceed (and process_batch_download will handle failure)
+                                        # Return what we have
+                                        new_items_e2 = self.driver.find_elements(By.CSS_SELECTOR, 'a[href*="/g/gen_"], a[href*="/t/task_"]')
+                                        new_hrefs_e2 = [el.get_attribute('href') for el in new_items_e2 if el.get_attribute('href') and el.get_attribute('href') not in initial_ids]
+                                        return new_hrefs_e2 if new_hrefs_e2 else None
                                 except: pass
                             
                             self.log(f"✅ Tìm thấy {len(new_matches)} kết quả mới khớp prompt!")
-                            return True
+                            new_hrefs = []
+                            for m in new_matches:
+                                try:
+                                    h = m.get_attribute("href")
+                                    if h: new_hrefs.append(h)
+                                except: pass
+                            return new_hrefs if new_hrefs else None
                 
                 # Check notification bell
                 if self._check_notification_bell():
@@ -1186,7 +1198,10 @@ class SoraAutomationService:
                     current_count = self._count_video_items()
                     if current_count > initial_count:
                         self.log("✅ Có kết quả mới (dựa trên số lượng)!")
-                        return True
+                        # If no prompt, we just return the new HREFs we find
+                        new_links = self.driver.find_elements(By.CSS_SELECTOR, 'a[href*="/g/gen_"], a[href*="/t/task_"]')
+                        new_hrefs = [el.get_attribute('href') for el in new_links if el.get_attribute('href') and el.get_attribute('href') not in initial_ids]
+                        return new_hrefs if new_hrefs else None
                 
             except Exception as e:
                 self.log(f"⚠️ Check error: {e}")
