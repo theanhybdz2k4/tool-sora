@@ -9,7 +9,7 @@ import sys
 
 # Base directories
 # Version
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 
 # Base directories
 if getattr(sys, 'frozen', False):
@@ -24,6 +24,7 @@ else:
     # Running as script
     BASE_DIR = Path(__file__).parent.parent
     DATA_ROOT = BASE_DIR
+    APP_EXEC_DIR = BASE_DIR
 
 CONFIG_DIR = DATA_ROOT / "config"
 DOWNLOADS_DIR = DATA_ROOT / "downloads"

@@ -19,7 +19,7 @@ class SoraAutomationService:
     BASE_URL = "https://sora.chatgpt.com"
     
     def __init__(self, browser=None, driver=None, download_dir: str = None, 
-                 log_callback: Optional[Callable] = None):
+                 log_callback: Optional[Callable] = None, check_interval: int = 10):
         if browser is not None:
             self.browser = browser
             self.driver = browser.driver
@@ -31,6 +31,7 @@ class SoraAutomationService:
         
         self.download_dir = download_dir or str(Path.cwd() / "downloads")
         self.log = log_callback or print
+        self.check_interval = check_interval
         self.wait = WebDriverWait(self.driver, 30)
         
         # Cache flags to avoid redundant operations
@@ -40,43 +41,102 @@ class SoraAutomationService:
         # Ensure download directory exists
         os.makedirs(self.download_dir, exist_ok=True)
         
-        # Navigate to Sora immediately
+        # Navigate to Sora - LUÔN navigate để tránh stale URL từ Chrome profile cache
+        # driver.current_url có thể trả về URL cũ từ session trước dù browser đang ở New Tab
         self.log("🌐 Đang mở sora.chatgpt.com...")
-        self.driver.get(self.BASE_URL)
-        time.sleep(3)
+        for nav_retry in range(3):
+            try:
+                self.driver.get(self.BASE_URL)
+                time.sleep(5)
+                # Verify bằng page title/content, KHÔNG tin current_url
+                page_title = self.driver.title.lower()
+                page_source_snippet = self.driver.page_source[:2000].lower() if self.driver.page_source else ""
+                real_url = self.driver.current_url.lower()
+                
+                if 'sora' in page_title or 'sora' in page_source_snippet or 'sora.chatgpt.com' in real_url:
+                    self.log(f"✅ Đã navigate đến Sora thành công (URL: {real_url})")
+                    break
+                elif 'auth.openai.com' in real_url or 'login' in real_url:
+                    self.log(f"✅ Đang ở trang đăng nhập OpenAI")
+                    break
+                else:
+                    self.log(f"⚠️ Navigate lần {nav_retry+1} - trang chưa load đúng (title='{self.driver.title}', url='{real_url}')")
+                    time.sleep(3 * (nav_retry + 1))
+            except Exception as nav_e:
+                self.log(f"⚠️ Lỗi navigate lần {nav_retry+1}: {nav_e}")
+                time.sleep(3 * (nav_retry + 1))
         
         # PROACTIVE: Switch to old Sora immediately after login/opening
         self.log("🔍 Đang thực hiện kiểm tra giao diện Old Sora...")
-        if self.switch_to_old_sora():
-            self._switched_to_old_sora = True
-        else:
-            self.log("⚠️ Không thể xác định hoặc chuyển đổi giao diện trong lúc khởi tạo.")
+        try:
+            if self.switch_to_old_sora():
+                self._switched_to_old_sora = True
+            else:
+                self.log("⚠️ Không thể xác định hoặc chuyển đổi giao diện trong lúc khởi tạo.")
+        except Exception as e:
+            self.log(f"⚠️ Lỗi switch Old Sora trong init: {e}")
         time.sleep(1)
         
         
     # ==================== LOGIN CHECK ====================
     
     def is_logged_in(self) -> bool:
-        """Check if user is logged into Sora"""
-        try:
-            page_source = self.driver.page_source.lower()
-            # Check for signs of being logged in
-            if 'describe your video' in page_source or 'storyboard' in page_source:
-                return True
-            return False
-        except Exception:
-            return False
+        """
+        Check if user is logged into Sora with high accuracy.
+        Uses multiple indicators: current URL, library links, prompt input, and profile buttons.
+        """
+        # Thử kiểm tra tối đa 3 lần với khoảng nghỉ ngắn để đợi page load
+        for attempt in range(3):
+            try:
+                current_url = self.driver.current_url.lower()
+                
+                # Indicator 1: Nếu còn ở trang auth.openai.com hoặc login.openai.com thì chắc chắn chưa đăng nhập
+                if 'auth.openai.com' in current_url or 'login.openai.com' in current_url:
+                    return False
+                
+                # Indicator 2: Kiểm tra existence của Library link hoặc Dashboard links
+                # Đây là các link chỉ có sau khi login
+                logged_in_links = [
+                    'a[href="/library"]',
+                    'a[href="/explore"]',
+                    '[aria-label="Settings"]',
+                    'button img[src*="avatar"]' # User profile avatar
+                ]
+                
+                for selector in logged_in_links:
+                    if self.driver.find_elements(By.CSS_SELECTOR, selector):
+                        return True
+                
+                # Indicator 3: Kiểm tra Prompt Input (cả New và Old Sora)
+                prompt_input = self._find_prompt_input()
+                if prompt_input:
+                    return True
+                
+                # Indicator 4: Page source check (fallback)
+                page_source = self.driver.page_source.lower()
+                if 'describe your video' in page_source or 'storyboard' in page_source or 'sign out' in page_source:
+                    return True
+                
+                # Nếu chưa thấy gì, đợi 2s rồi check lại (phòng hờ mạng chậm)
+                if attempt < 2:
+                    time.sleep(2)
+                    
+            except Exception as e:
+                # Nếu lỗi session id ở đây, thử recover nhẹ
+                if "invalid session id" in str(e).lower():
+                    self.log("⚠️ Mất session khi check login, đang bỏ qua...")
+                continue
+                
+        return False
             
     def wait_for_manual_login(self, timeout: int = 300) -> bool:
-        """Wait for user to manually log in"""
+        """Wait for user to manually log in with robust check"""
         self.log("⏳ Đang chờ đăng nhập thủ công...")
         start_time = time.time()
         
         while time.time() - start_time < timeout:
             try:
-                page_source = self.driver.page_source.lower()
-                # Check for logged-in indicators
-                if 'describe your video' in page_source or 'storyboard' in page_source:
+                if self.is_logged_in():
                     self.log("✅ Phát hiện đăng nhập thành công!")
                     return True
             except Exception:
@@ -90,180 +150,136 @@ class SoraAutomationService:
     def switch_to_old_sora(self) -> bool:
         """
         Switch from New Sora to Old Sora interface.
-        
-        New Sora indicators:
-        - Has Settings button (3 dots icon) with aria-label="Settings"
-        - Menu contains "Switch to old Sora"
-        
-        Old Sora indicators:
-        - Has "Open New Sora" button
-        - Has "Describe your image..." prompt input
         """
         self.log("🔄 Kiểm tra và chuyển sang Old Sora...")
         
-        try:
-            # Check if already on old Sora by looking for indicators
-            page_source = self.driver.page_source.lower()
-            
-            # Old Sora has "Describe your image" input
-            if 'describe your image' in page_source:
-                self.log("✅ Đang ở Old Sora (có prompt input)")
-                return True
-            
-            # Old Sora has "Open New Sora" button
-            if 'open new sora' in page_source:
-                self.log("✅ Đang ở Old Sora (có Open New Sora button)")
-                return True
-            
-            # We are on New Sora - need to switch
-            self.log("🔍 Đang ở New Sora, tìm nút Settings...")
-            
-            # Method 1: Find Settings button by aria-label="Settings"
+        # Try up to 3 times to switch
+        for attempt in range(3):
             try:
-                settings_btn = self.driver.find_element(By.CSS_SELECTOR, 
-                    'button[aria-label="Settings"]')
-                if settings_btn.is_displayed():
-                    settings_btn.click()
-                    self.log("✅ Đã click Settings button")
-                    time.sleep(1)
-                    
-                    # Now find "Switch to old Sora" in menu
-                    try:
-                        switch_item = self.driver.find_element(By.XPATH,
-                            "//*[contains(text(), 'Switch to old Sora')]")
-                        if switch_item.is_displayed():
-                            switch_item.click()
-                            self.log("✅ Đã click 'Switch to old Sora'")
-                            time.sleep(3)
-                            return True
-                    except Exception:
-                        pass
-            except Exception:
-                pass
-            
-            # Method 2: Find by 3 dots icon SVG (backup)
-            try:
-                # Look for buttons with SVG containing 3 circles (dots pattern)
-                dot_buttons = self.driver.find_elements(By.XPATH,
-                    "//button[.//svg and (contains(@aria-label, 'Settings') or contains(@aria-label, 'More') or contains(@aria-label, 'Menu'))]")
-                
-                for btn in dot_buttons:
-                    try:
-                        if btn.is_displayed():
-                            btn.click()
-                            self.log("✅ Đã click dot menu button")
-                            time.sleep(1)
-                            
-                            # Find Switch to old Sora
-                            switch_item = self.driver.find_element(By.XPATH,
-                                "//*[contains(text(), 'Switch to old Sora')]")
-                            if switch_item.is_displayed():
-                                switch_item.click()
-                                self.log("✅ Đã click 'Switch to old Sora' từ menu")
-                                time.sleep(3)
-                                return True
-                    except Exception:
-                        continue
-            except Exception:
-                pass
-            
-            # Method 3: Look for menu item with role="menuitem"  
-            try:
-                menu_items = self.driver.find_elements(By.CSS_SELECTOR, '[role="menuitem"]')
-                for item in menu_items:
-                    if 'switch to old sora' in item.text.lower():
-                        item.click()
-                        self.log("✅ Đã click 'Switch to old Sora' (menuitem)")
-                        time.sleep(3)
-                        return True
-            except Exception:
-                pass
-            
-            # Method 4: Click any visible element with "Switch to old Sora" text
-            try:
-                switch_elem = self.driver.find_element(By.XPATH, 
-                    "//*[contains(text(), 'Switch to old Sora')]")
-                if switch_elem.is_displayed():
-                    switch_elem.click()
-                    self.log("✅ Đã click 'Switch to old Sora'")
-                    time.sleep(3)
+                # Check for Old Sora indicators
+                page_source = self.driver.page_source.lower()
+                if 'describe your image' in page_source or 'open new sora' in page_source:
+                    self.log("✅ Đang ở giao diện Old Sora")
                     return True
-            except Exception:
-                pass
+                
+                # Check for New Sora Indicators and Switch
+                # Method 1: Settings button by aria-label
+                try:
+                    settings_btn = self.driver.find_element(By.CSS_SELECTOR, 'button[aria-label="Settings"]')
+                    if settings_btn.is_displayed():
+                        settings_btn.click()
+                        time.sleep(1.5)
+                        
+                        switch_item = self.driver.find_element(By.XPATH, "//*[contains(text(), 'Switch to old Sora')]")
+                        switch_item.click()
+                        self.log("✅ Đã click 'Switch to old Sora' từ Settings")
+                        time.sleep(3)
+                        continue # Re-check in next iteration
+                except: pass
+                
+                # Method 2: JS injection for direct menu item click
+                try:
+                    js_switch = """
+                    (function() {
+                        var items = document.querySelectorAll('[role="menuitem"], button, span');
+                        for (var i = 0; i < items.length; i++) {
+                            if (items[i].textContent.includes('Switch to old Sora')) {
+                                items[i].click(); return true;
+                            }
+                        }
+                        return false;
+                    })();
+                    """
+                    if self.driver.execute_script(js_switch):
+                        self.log("✅ Đã click 'Switch to old Sora' via JS")
+                        time.sleep(3)
+                        continue
+                except: pass
+                
+                # Method 3: Force URL if possible (OpenAI sometimes supports this)
+                # self.driver.get("https://sora.chatgpt.com/?v=old") # Hypothetical
+                
+            except Exception as e:
+                self.log(f"⚠️ Lần thử {attempt+1} lỗi: {e}")
             
-            self.log("⚠️ Không tìm thấy option Switch to old Sora")
-            return False
+            time.sleep(2)
             
-        except Exception as e:
-            self.log(f"⚠️ Lỗi switch Sora version: {e}")
-            return False
+        self.log("⚠️ Không tìm thấy hoặc không chuyển được sang Old Sora")
+        return False
     
     def navigate_to_create(self) -> bool:
-        """Navigate to video creation page - OPTIMIZED"""
+        """Navigate to video creation page - ENHANCED"""
+        self.log("🌐 Đang điều hướng đến trang tạo...")
         
-        try:
-            # PRIORITIZE: Switch to old Sora ONLY if not already switched this session
-            # Must run BEFORE checking prompt input, because New Sora also has prompt input
-            if not self._switched_to_old_sora:
-                self.log("🔄 Kiểm tra và Chuyển sang Old Sora...")
-                if self.switch_to_old_sora():
-                    self._switched_to_old_sora = True
-                time.sleep(2)
-
-            # Check if already on correct page (avoid unnecessary navigation)
+        for attempt in range(3):
             try:
-                current_url = self.driver.current_url
-            except:
-                current_url = ""
-            
-            # If already on create page with prompt input, no need to navigate
-            if 'sora.chatgpt.com' in current_url:
-                # Check if prompt input exists = already on create page
+                # 1. Verify thực sự đang ở Sora bằng page title/content (không tin URL)
+                page_title = self.driver.title.lower()
+                real_url = self.driver.current_url.lower()
+                
+                actually_on_sora = ('sora' in page_title or 
+                                   'sora.chatgpt.com' in real_url and 
+                                   'chrome://' not in real_url and
+                                   'google.com' not in real_url)
+                
+                if not actually_on_sora:
+                    self.log(f"  ⚠️ Không ở Sora thực sự (title='{self.driver.title}', url='{real_url}'), navigate lại...")
+                    self.driver.get(self.BASE_URL)
+                    time.sleep(5)
+                    # Verify lại
+                    page_title = self.driver.title.lower()
+                    real_url = self.driver.current_url.lower()
+                    if 'sora' not in page_title and 'sora.chatgpt.com' not in real_url:
+                        self.log(f"  ❌ Vẫn không vào được Sora (title='{self.driver.title}')")
+                        time.sleep(3)
+                        continue
+                
+                # 2. Subpage handling - re-read URL trước khi check
+                real_url = self.driver.current_url.lower()
+                sora_subpages = ['/explore', '/library', '/video/', '/image/', '/settings']
+                if any(sub in real_url for sub in sora_subpages):
+                    self.log(f"  🔄 Đang ở subpage ({real_url}), chuyển về trang tạo...")
+                    self.driver.get(self.BASE_URL)
+                    time.sleep(3)
+                
+                # 3. Handle interface version
+                if not self._switched_to_old_sora:
+                    if self.switch_to_old_sora():
+                        self._switched_to_old_sora = True
+                    time.sleep(2)
+                
+                # 4. Final verification: Does prompt input exist?
                 if self._find_prompt_input():
                     self.log("✅ Đã ở trang tạo video")
                     return True
                 
-                # If prompt input not found, we might be on New Sora or redirect loop
-                self.log("🔄 Không thấy prompt input, kiểm tra lại giao diện...")
-                if self.switch_to_old_sora():
-                    self._switched_to_old_sora = True
-                time.sleep(2)
-                
-                # Re-check after switch
-                if self._find_prompt_input():
-                    self.log("✅ Đã ở trang tạo video")
-                    return True
-            
-            # Only navigate if NOT already on sora domain
-            if 'sora.chatgpt.com' not in current_url:
-                self.log("🌐 Navigating to Sora...")
+                # 5. Không tìm thấy prompt input -> thử navigate lại hoàn toàn
+                self.log(f"  ❌ Không thấy prompt input, navigate về trang chính...")
                 self.driver.get(self.BASE_URL)
-                time.sleep(3)
-            
-            # Wait for prompt input to appear (max 15 seconds)
-            for i in range(15):
-                if self._find_prompt_input():
-                    self.log("✅ Đã vào trang tạo video")
-                    return True
-                time.sleep(1)
-            
-            # ONLY check Cloudflare when we FAILED to find prompt input
-            if self._is_cloudflare_challenge():
-                self.log("⚠️ Cloudflare challenge! Waiting...")
-                if self._wait_for_cloudflare():
-                    # Try again after Cloudflare
-                    for _ in range(10):
-                        if self._find_prompt_input():
-                            self.log("✅ Đã vào trang tạo video")
-                            return True
-                        time.sleep(1)
+                time.sleep(5)
                 
-            self.log("⚠️ Không tìm thấy ô nhập prompt")
-            return False
-            
-        except Exception as e:
-            self.log(f"❌ Lỗi navigation: {e}")
-            return False
+                # 6. Handle Cloudflare if blocked
+                if self._is_cloudflare_challenge():
+                    self.log("⚠️ Phát hiện Cloudflare challenge!")
+                    if self._wait_for_cloudflare():
+                        continue
+                
+                # Re-check prompt input after full navigate
+                if self._find_prompt_input():
+                    self.log("✅ Đã ở trang tạo video")
+                    return True
+                    
+                self.log(f"  ⏳ Chờ trang load (Lần {attempt+1}/3)...")
+                time.sleep(3)
+                
+            except Exception as e:
+                self.log(f"❌ Lỗi navigation lần {attempt+1}: {e}")
+                try:
+                    self.driver.get(self.BASE_URL)
+                    time.sleep(5)
+                except: pass
+                
+        return False
     
     def _is_cloudflare_challenge(self) -> bool:
         """Check if Cloudflare challenge page is displayed - STRICT detection"""
@@ -372,9 +388,21 @@ class SoraAutomationService:
         """
         Upload reference image with proper modal handling.
         """
-        if not image_path or not os.path.exists(image_path):
-            self.log("⚠️ Không có ảnh để upload")
+        if not image_path:
+            self.log("⚠️ Không có ảnh để upload (đường dẫn trống)")
             return False
+            
+        if not os.path.exists(image_path):
+            self.log(f"⚠️ Không tìm thấy file ảnh: {image_path}")
+            # Try to check if it's just the filename and look in Image directory
+            filename = os.path.basename(image_path)
+            alt_path = Path("Image") / filename
+            if alt_path.exists():
+                image_path = str(alt_path.absolute())
+                self.log(f"🔍 Đã tìm thấy ảnh thay thế tại: {image_path}")
+            else:
+                self.log(f"❌ File ảnh thực sự không tồn tại: {filename}")
+                return False
             
         self.log(f"📤 Đang upload ảnh: {os.path.basename(image_path)}")
         
@@ -428,118 +456,91 @@ class SoraAutomationService:
     
     def _verify_image_uploaded(self) -> bool:
         """Check if an image has been uploaded by looking for preview elements"""
-        try:
-            # Look for image preview in the storyboard/input area
-            preview_selectors = [
-                'img[src*="blob:"]',  # Blob URLs for uploaded images
-                'img[src*="data:"]',  # Data URLs
-                '[data-testid*="preview"]',
-                '[data-testid*="thumbnail"]',
-                '.preview img',
-                '.storyboard img',
-            ]
-            
-            for selector in preview_selectors:
-                elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
-                for elem in elements:
-                    if elem.is_displayed():
-                        self.log("✅ Tìm thấy preview ảnh")
-                        return True
-            
-            return False
-        except Exception:
-            return False
+        for _ in range(5):
+            try:
+                # Look for image preview in the storyboard/input area
+                preview_selectors = [
+                    'img[src*="blob:"]',  # Blob URLs for uploaded images
+                    'img[src*="data:"]',  # Data URLs
+                    '[data-testid*="preview"]',
+                    '[data-testid*="thumbnail"]',
+                    '.preview img',
+                    '.storyboard img',
+                ]
+                
+                for selector in preview_selectors:
+                    elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                    for elem in elements:
+                        if elem.is_displayed():
+                            self.log("✅ Tìm thấy preview ảnh")
+                            return True
+            except: pass
+            time.sleep(1)
+        return False
     
     def _handle_media_upload_agreement(self) -> bool:
         """
         Handle the "Media upload agreement" modal.
-        
-        Steps:
-        1. Check if modal is present
-        2. Tick all checkboxes (4 total)
-        3. Click Accept button
-        4. Wait for modal to close
         """
-        try:
-            # Wait for modal to appear
-            time.sleep(2)
-            
-            # Check if modal exists
+        self.log("⏳ Checking for Media upload agreement modal...")
+        
+        # Wait up to 10 seconds for modal
+        modal_found = False
+        for _ in range(5):
             page_source = self.driver.page_source.lower()
-            if 'media upload agreement' not in page_source:
-                self.log("ℹ️ Không thấy modal agreement (có thể đã đồng ý trước đó)")
-                return False
-            
-            self.log("📋 Tìm thấy modal Media upload agreement")
-            
+            if 'media upload agreement' in page_source:
+                modal_found = True
+                break
+            time.sleep(2)
+        
+        if not modal_found:
+            self.log("ℹ️ Không thấy modal agreement (có thể đã đồng ý trước đó)")
+            return False
+
+        self.log("📋 Tìm thấy modal Media upload agreement")
+        
+        try:
             # Step 1: Find and click ALL checkboxes
-            checkboxes = self.driver.find_elements(By.CSS_SELECTOR, 
-                'input[type="checkbox"], [role="checkbox"]')
-            
-            checked_count = 0
+            checkboxes = self.driver.find_elements(By.CSS_SELECTOR, 'input[type="checkbox"], [role="checkbox"]')
             for cb in checkboxes:
                 try:
                     if cb.is_displayed():
-                        # Try regular click first
-                        try:
-                            cb.click()
-                            checked_count += 1
-                        except Exception:
-                            # Fallback to JS click
-                            self.driver.execute_script("arguments[0].click();", cb)
-                            checked_count += 1
+                        self.driver.execute_script("arguments[0].click();", cb)
                         time.sleep(0.3)
-                except Exception:
-                    pass
+                except: pass
             
-            self.log(f"✅ Đã tick {checked_count} checkbox")
-            time.sleep(1)
+            # Step 2: Click Accept button
+            accept_selectors = [
+                "//button[normalize-space(text())='Accept']",
+                "//button[normalize-space(text())='Agree']",
+                "button.bg-primary" # Common style for primary action
+            ]
             
-            # Step 2: Find and click Accept button using XPath (more reliable for text matching)
-            accept_clicked = False
+            for selector in accept_selectors:
+                try:
+                    if selector.startswith("//"): btn = self.driver.find_element(By.XPATH, selector)
+                    else: btn = self.driver.find_element(By.CSS_SELECTOR, selector)
+                    
+                    if btn.is_displayed():
+                        btn.click()
+                        self.log("✅ Đã click Accept")
+                        time.sleep(2)
+                        return True
+                except: continue
+
+            # JS Fallback
+            self.driver.execute_script("""
+                var btns = document.querySelectorAll('button');
+                for (var i = 0; i < btns.length; i++) {
+                    var t = btns[i].textContent.toLowerCase();
+                    if (t.includes('accept') || t.includes('agree')) {
+                        btns[i].click(); return true;
+                    }
+                }
+            """)
             
-            # Try XPath first - most reliable for finding by text
-            try:
-                accept_btn = self.driver.find_element(By.XPATH, 
-                    "//button[normalize-space(text())='Accept' or normalize-space(text())='Agree']")
-                if accept_btn.is_displayed() and accept_btn.is_enabled():
-                    accept_btn.click()
-                    accept_clicked = True
-                    self.log("✅ Đã click Accept")
-            except Exception:
-                pass
-            
-            # Fallback: loop through all buttons
-            if not accept_clicked:
-                all_btns = self.driver.find_elements(By.TAG_NAME, 'button')
-                for btn in all_btns:
-                    try:
-                        btn_text = btn.text.lower().strip()
-                        if btn_text == 'accept' or btn_text == 'agree':
-                            if btn.is_displayed() and btn.is_enabled():
-                                btn.click()
-                                accept_clicked = True
-                                self.log("✅ Đã click Accept")
-                                break
-                    except Exception:
-                        continue
-            
-            if not accept_clicked:
-                self.log("⚠️ Không tìm thấy nút Accept")
-                return False
-            
-            # Step 3: Wait for modal to close
             time.sleep(3)
-            
-            # Verify modal closed
-            for _ in range(10):
-                page_source = self.driver.page_source.lower()
-                if 'media upload agreement' not in page_source:
-                    self.log("✅ Modal đã đóng, ảnh đã upload xong")
-                    return True
-                time.sleep(1)
-            
-            return True
+            return 'media upload agreement' not in self.driver.page_source.lower()
             
         except Exception as e:
             self.log(f"⚠️ Lỗi xử lý modal: {e}")
@@ -614,44 +615,77 @@ class SoraAutomationService:
         """Click the generate/submit button (arrow button ↑)"""
         self.log("🚀 Nhấn Generate...")
         
-        time.sleep(1)
-        
         try:
-            # Get window height for bottom bar detection
-            window_height = self.driver.execute_script("return window.innerHeight")
-            bottom_threshold = window_height - 150
+            # Wait for generate button to become enabled (Sora needs time after prompt input)
+            generate_btn = None
+            for wait_attempt in range(10):  # Wait up to ~10s
+                time.sleep(1)
+                
+                # Find all buttons in bottom bar
+                window_height = self.driver.execute_script("return window.innerHeight")
+                bottom_threshold = window_height - 150
+                
+                # Method 1: type=submit
+                try:
+                    submit_btn = self.driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]')
+                    if submit_btn.is_displayed():
+                        is_disabled = (submit_btn.get_attribute("disabled") is not None or 
+                                      submit_btn.get_attribute("data-disabled") == "true" or
+                                      not submit_btn.is_enabled())
+                        if not is_disabled:
+                            generate_btn = submit_btn
+                            break
+                        elif wait_attempt >= 5:
+                            # After 5s, force click even if disabled
+                            generate_btn = submit_btn
+                            break
+                except Exception:
+                    pass
+                
+                # Method 2: Arrow button with SVG in bottom bar
+                try:
+                    buttons_with_svg = self.driver.find_elements(By.XPATH, "//button[.//svg]")
+                    for btn in buttons_with_svg:
+                        try:
+                            if not btn.is_displayed(): continue
+                            location = btn.location
+                            if location.get('y', 0) < bottom_threshold: continue
+                            
+                            # Look for the send/submit button (usually has arrow up SVG)
+                            btn_html = btn.get_attribute("outerHTML") or ""
+                            if 'sr-only' in btn_html and ('create' in btn_html.lower() or 'video' in btn_html.lower() or 'image' in btn_html.lower()):
+                                is_disabled = (btn.get_attribute("disabled") is not None or 
+                                              btn.get_attribute("data-disabled") == "true")
+                                if not is_disabled or wait_attempt >= 5:
+                                    generate_btn = btn
+                                    break
+                        except: continue
+                except Exception:
+                    pass
+                
+                if generate_btn:
+                    break
+                    
+                if wait_attempt < 9:
+                    self.log(f"  ⏳ Đợi nút Generate sẵn sàng... ({wait_attempt+1}/10)")
             
-            # Method 1: Find by type=submit
-            try:
-                submit_btn = self.driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]')
-                if submit_btn.is_displayed() and submit_btn.is_enabled():
-                    submit_btn.click()
+            # Try clicking the found button
+            if generate_btn:
+                try:
+                    generate_btn.click()
                     self.log("✅ Đã click Generate")
                     time.sleep(2)
                     return True
-            except Exception:
-                pass
-            
-            # Method 2: Find arrow/up button with SVG in bottom bar
-            try:
-                buttons_with_svg = self.driver.find_elements(By.XPATH, "//button[.//svg]")
-                
-                for btn in buttons_with_svg:
+                except Exception:
                     try:
-                        if btn.is_displayed() and btn.is_enabled():
-                            location = btn.location
-                            # Only click buttons in bottom bar
-                            if location.get('y', 0) > bottom_threshold:
-                                btn.click()
-                                self.log("✅ Đã click Generate (SVG button)")
-                                time.sleep(2)
-                                return True
+                        self.driver.execute_script("arguments[0].click();", generate_btn)
+                        self.log("✅ Đã click Generate (JS)")
+                        time.sleep(2)
+                        return True
                     except Exception:
-                        continue
-            except Exception:
-                pass
+                        pass
             
-            # Method 3: Press Enter key
+            # Fallback: Press Enter key on prompt input
             try:
                 input_elem = self._find_prompt_input()
                 if input_elem:
@@ -661,6 +695,28 @@ class SoraAutomationService:
                     return True
             except Exception:
                 pass
+            
+            # Last resort: JS click on any generate-looking button
+            js_result = self.driver.execute_script("""
+                var buttons = document.querySelectorAll('button');
+                for (var i = 0; i < buttons.length; i++) {
+                    var btn = buttons[i];
+                    var text = (btn.textContent || '').toLowerCase();
+                    var sr = btn.querySelector('.sr-only');
+                    var srText = sr ? sr.textContent.toLowerCase() : '';
+                    if (srText.includes('create') || srText.includes('generate') || srText.includes('video') || srText.includes('image')) {
+                        btn.removeAttribute('disabled');
+                        btn.setAttribute('data-disabled', 'false');
+                        btn.click();
+                        return true;
+                    }
+                }
+                return false;
+            """)
+            if js_result:
+                self.log("✅ Đã click Generate (JS force)")
+                time.sleep(2)
+                return True
                 
             self.log("❌ Không thể click Generate")
             return False
@@ -679,7 +735,7 @@ class SoraAutomationService:
         Args:
             type: "image" or "video" (media type)
             aspect_ratio: "16:9", "3:2", "1:1", "2:3", "9:16"
-            resolution: "1080p", "720p", "480p"
+            resolution: "1080p", "720p", "480p", "360p"
             duration: "20s", "15s", "10s", "5s" or "20", "15", "10", "5"
             variations: 4, 2, 1 (number of video variations)
         """
@@ -717,19 +773,15 @@ class SoraAutomationService:
             
             # Variations
             if variations:
-                suffix = "video"
-                if type and "image" in type.lower():
-                    suffix = "image"
+                # Store Variations setting
+                self._last_settings['variations'] = variations
                 
-                # Handle plural "videos"/"images" (usually 1 is singular, others plural)
-                # But UI screenshot shows "4 images", "2 images", "1 image"
-                # And "4 videos", "2 videos", "1 video"
+                # Broad text for search: just use the number and media type keyword
+                # e.g. "1 image" or "4 videos"
+                # We'll use a flexible search in _set_dropdown_option
+                media_keyword = "image" if type and "image" in type.lower() else "video"
+                var_text = f"{variations}" # We'll search for the number first
                 
-                # Check for just number in case passing "videos" failed previously
-                is_plural = str(variations) != "1"
-                suffix += "s" if is_plural else ""
-                
-                var_text = f"{variations} {suffix}"
                 self._set_dropdown_option(var_text, "variations")
                 time.sleep(0.5)
             
@@ -743,568 +795,398 @@ class SoraAutomationService:
     def _set_dropdown_option(self, value: str, option_type: str) -> bool:
         """
         Click on a dropdown button in the bottom bar, wait for modal, then select option.
-        
-        Flow:
-        1. Find and click the dropdown button (Type, Aspect, Duration, Resolution, Variations)
-        2. Wait for dropdown modal to appear
-        3. Find and click the option with EXACT text match
+        Improved with scroll-into-view and JS fallback for intercepted clicks.
         """
-        try:
-            # ===== STEP 1: FIND AND CLICK DROPDOWN BUTTON =====
-            window_height = self.driver.execute_script("return window.innerHeight")
-            bottom_threshold = window_height - 150
-            
-            all_buttons = self.driver.find_elements(By.CSS_SELECTOR, 'button, [role="button"], [role="combobox"]')
-            
-            # Filter to buttons in bottom bar
-            bottom_bar_buttons = []
-            for btn in all_buttons:
-                try:
-                    if btn.is_displayed():
-                        location = btn.location
-                        if location.get('y', 0) > bottom_threshold:
-                            bottom_bar_buttons.append(btn)
-                except:
-                    continue
-            
-            self.log(f"  🔍 Tìm thấy {len(bottom_bar_buttons)} nút trong bottom bar")
-            
-            # Find the right button to click based on option_type
-            button_clicked = False
-            for btn in bottom_bar_buttons:
-                try:
-                    btn_text = btn.text.lower().strip()
-                    aria_label = (btn.get_attribute('aria-label') or "").lower()
-                    
-                    should_click = False
-                    
-                    if option_type == "type":
-                        # Type button shows current selection: "Image" or "Video"
-                        if btn_text in ["image", "video"] or "type" in aria_label or "media" in aria_label:
-                            should_click = True
-                            
-                    elif option_type == "aspect":
-                        # Aspect button shows current ratio: "16:9", "3:2", etc.
-                        if any(r in btn_text for r in ['16:9', '9:16', '1:1', '3:2', '2:3']) or "aspect" in aria_label or "ratio" in aria_label:
-                            should_click = True
-                            
-                    elif option_type == "duration":
-                        # Duration button shows: "5s", "10s", "15s", "20s"
-                        if ('s' in btn_text and any(d in btn_text for d in ['5', '10', '15', '20']) and 'v' not in btn_text) or "duration" in aria_label:
-                            should_click = True
-                            
-                    elif option_type == "resolution":
-                        # Resolution button shows: "480p", "720p", "1080p"
-                        if any(r in btn_text for r in ['480', '720', '1080', '360']) or "resolution" in aria_label or "quality" in aria_label:
-                            should_click = True
-                            
-                    elif option_type == "variations":
-                        # Variations button shows: "1v", "2v", "4v" or "1 video", "4 images", etc.
-                        # Check for compact format (1v, 2v, 4v) or full format (1 video, 2 images)
-                        has_digit = any(c.isdigit() for c in btn_text)
-                        is_compact_v = ('v' in btn_text and has_digit and btn_text.replace(' ', '').endswith('v'))
-                        is_full_format = has_digit and any(w in btn_text for w in ['video', 'image', 'videos', 'images'])
-                        if is_compact_v or is_full_format or "variation" in aria_label or "count" in aria_label:
-                            should_click = True
-                    
-                    if should_click:
-                        btn.click()
-                        self.log(f"  �️ Clicked {option_type} button: {btn_text or aria_label}")
-                        button_clicked = True
-                        break
-                        
-                except Exception:
-                    continue
-            
-            if not button_clicked:
-                self.log(f"  ⚠️ Không tìm thấy nút {option_type}")
+        self.log(f"⚙️ Setting {option_type} to '{value}'...")
+        
+        for main_attempt in range(3):
+            try:
+                # Step 1: Find and click the button
+                window_height = self.driver.execute_script("return window.innerHeight")
+                bottom_threshold = window_height - 200 # Slightly wider for safety
                 
-                # For variations: Try fallback JavaScript method
-                if option_type == "variations":
-                    self.log(f"  🔄 Thử tìm variations button bằng JS...")
+                buttons = self.driver.find_elements(By.CSS_SELECTOR, 'button, [role="button"], [role="combobox"]')
+                target_btn = None
+                
+                for btn in buttons:
                     try:
-                        # Look for combobox buttons with pattern like "1v", "2v", "4v"
-                        js_find_variations_btn = """
-                        (function() {
-                            var buttons = document.querySelectorAll('button[role="combobox"]');
-                            for (var i = 0; i < buttons.length; i++) {
-                                var btn = buttons[i];
-                                var text = btn.textContent.trim();
-                                // Match patterns like "1v", "2v", "4v" or "1 video", "2 images"
-                                if (/^\\d+v$/i.test(text.replace(/\\s+/g, '')) || 
-                                    /\\d+\\s*(video|image|videos|images)/i.test(text)) {
-                                    btn.click();
-                                    return 'clicked: ' + text;
-                                }
-                            }
-                            return 'not_found';
-                        })();
-                        """
-                        result = self.driver.execute_script(js_find_variations_btn)
-                        if result and result != 'not_found':
-                            self.log(f"  ✓ Tìm thấy variations button bằng JS: {result}")
-                            button_clicked = True
-                    except Exception as e:
-                        self.log(f"  ⚠️ JS fallback error: {e}")
-                
-                # If still not clicked after fallback, return False
-                if not button_clicked:
-                    return False
-            
-            # ===== STEP 2: WAIT FOR DROPDOWN MODAL =====
-            time.sleep(0.8)  # Wait for modal animation
-            
-            # ===== STEP 3: FIND AND CLICK THE OPTION =====
-            # Normalize the value we're looking for
-            search_value = value.lower().strip()
-            
-            # Special handling for different option types
-            if option_type == "type":
-                # Just "image" or "video"
-                if "image" in search_value:
-                    search_value = "image"
-                elif "video" in search_value:
-                    search_value = "video"
-                    
-            elif option_type == "duration":
-                # UI shows "X seconds" format
-                # Input might be "5s", "10s", "5 seconds", etc.
-                dur_num = ''.join(c for c in search_value if c.isdigit())
-                if dur_num:
-                    search_value = f"{dur_num} seconds"
-                    
-            elif option_type == "resolution":
-                # UI shows "1080p", "720p", "480p" with extra text
-                # Just need to match the resolution part
-                for res in ['1080p', '720p', '480p', '360p']:
-                    if res.replace('p', '') in search_value:
-                        search_value = res
-                        break
+                        if not btn.is_displayed(): continue
+                        # Filter buttons in the bottom composer area
+                        if btn.location.get('y', 0) < bottom_threshold: continue
                         
-            elif option_type == "variations":
-                # UI shows "4 images", "2 images", "1 image" for image type
-                # or "4 videos", "2 videos", "1 video" for video type
-                # Value passed from configure_video_settings is already formatted
-                # Just ensure clean format without extra spaces
-                search_value = ' '.join(search_value.split())  # Normalize whitespace
-            
-            self.log(f"  🔎 Tìm option: '{search_value}'")
-            
-            # Method 1: Find by role="option" or role="menuitem"
-            option_elements = self.driver.find_elements(By.CSS_SELECTOR, 
-                '[role="option"], [role="menuitem"], [role="menuitemradio"], [role="listbox"] > div')
-            
-            for opt in option_elements:
-                try:
-                    if not opt.is_displayed():
-                        continue
-                    
-                    # Get text and normalize whitespace (icons can cause extra spaces)
-                    opt_text = ' '.join(opt.text.lower().split())
-                    
-                    # Log visible options for debugging
-                    if opt_text and len(opt_text) < 40:
-                        self.log(f"    📋 Option visible: '{opt_text}'")
-                    
-                    # EXACT match or starts with (for resolution which has "8x slower" suffix)
-                    if opt_text == search_value or opt_text.startswith(search_value + ' ') or opt_text.startswith(search_value):
-                        opt.click()
-                        self.log(f"  ✓ Set {option_type}: {value}")
-                        time.sleep(0.3)
-                        return True
+                        text = btn.text.lower()
+                        aria = (btn.get_attribute('aria-label') or "").lower()
                         
-                except Exception:
+                        # Match by text or aria-label
+                        if option_type == "type":
+                            if text in ["image", "video"] or "type" in aria:
+                                target_btn = btn
+                        elif option_type == "aspect":
+                            if any(r in text for r in ['16:9', '9:16', '1:1', '3:2', '2:3']) or "aspect" in aria:
+                                target_btn = btn
+                        elif option_type == "duration":
+                            if (('s' in text and any(d in text for d in ['5', '10', '15', '20'])) or "duration" in aria):
+                                target_btn = btn
+                        elif option_type == "resolution":
+                            if (any(r in text for r in ['360', '480', '720', '1080']) or "resolution" in aria):
+                                target_btn = btn
+                        elif option_type == "variations":
+                            # Button for variations MUST have 'v' or 'variation' OR a number,
+                            # but it MUST NOT be just 'image' or 'video' (which is the type button)
+                            is_media_type = text in ['image', 'video']
+                            has_v = 'v' in text.replace(' ', '') or "variation" in aria
+                            has_number = any(str(v) in text for v in [1, 2, 4])
+                            
+                            if (has_v or (has_number and not is_media_type)) and text != "image" and text != "video":
+                                target_btn = btn
+                        
+                        if target_btn: break
+                    except: continue
+
+                if not target_btn:
+                    self.log(f"  ⚠️ Lần thử {main_attempt+1}: Không tìm thấy nút {option_type}")
+                    time.sleep(2)
                     continue
-            
-            # Method 2: JavaScript - find ALL visible elements and match text
-            js_find_and_click = f"""
-            (function() {{
-                var searchValue = '{search_value}';
+
+                # Ensure button is in view and try to click
+                try:
+                    self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", target_btn)
+                    time.sleep(0.5)
+                    target_btn.click()
+                except Exception as e:
+                    if "click intercepted" in str(e).lower():
+                        self.log(f"  ⚠️ Click bị chặn, thử click bằng JS...")
+                        self.driver.execute_script("arguments[0].click();", target_btn)
+                    else:
+                        raise e
+
+                time.sleep(1.5)
+
+                # Step 2: Find and click the option
+                search_val = value.lower().strip()
+                # Simple normalization for duration
+                if option_type == "duration" and search_val.isdigit(): search_val = f"{search_val} seconds"
                 
-                // Helper function to normalize whitespace
-                function normalizeText(text) {{
-                    return text.replace(/\\s+/g, ' ').trim().toLowerCase();
-                }}
+                # Broad selector for dropdown options
+                options = self.driver.find_elements(By.CSS_SELECTOR, '[role="option"], [role="menuitem"], .radix-dropdown-menu-item, button, div[role="menuitem"]')
+                option_clicked = False
                 
-                // Get all elements on page
-                var allElements = document.querySelectorAll('*');
-                
-                // First pass: exact match
-                for (var i = 0; i < allElements.length; i++) {{
-                    var el = allElements[i];
-                    var rect = el.getBoundingClientRect();
-                    
-                    // Must be visible and in upper part of screen (dropdown area)
-                    if (rect.width === 0 || rect.height === 0) continue;
-                    if (rect.top > window.innerHeight * 0.85) continue; // Skip bottom bar
-                    if (rect.top < 0) continue; // Skip off-screen
-                    
-                    var style = window.getComputedStyle(el);
-                    if (style.display === 'none' || style.visibility === 'hidden') continue;
-                    
-                    // Get text content without nested elements' text (direct text only)
-                    var directText = '';
-                    for (var j = 0; j < el.childNodes.length; j++) {{
-                        if (el.childNodes[j].nodeType === 3) {{ // TEXT_NODE
-                            directText += el.childNodes[j].textContent;
-                        }}
-                    }}
-                    directText = normalizeText(directText);
-                    
-                    // Also try full text content with normalized whitespace
-                    var fullText = normalizeText(el.textContent);
-                    
-                    // EXACT match
-                    if (directText === searchValue || fullText === searchValue) {{
-                        el.click();
-                        return 'exact: ' + fullText.substring(0, 30);
-                    }}
-                    
-                    // Starts with match (for "1080p 8x slower" matching "1080p")
-                    if (fullText.startsWith(searchValue + ' ') || fullText.startsWith(searchValue)) {{
-                        // Verify it's a clickable option (not just any element)
-                        var role = el.getAttribute('role');
-                        var isOption = role === 'option' || role === 'menuitem' || role === 'menuitemradio';
-                        var isClickable = el.tagName === 'BUTTON' || el.tagName === 'A' || el.onclick || el.style.cursor === 'pointer';
+                # First pass: strict match
+                for opt in options:
+                    try:
+                        if not opt.is_displayed(): continue
+                        opt_text = opt.text.lower().replace('✓', '').strip()
                         
-                        if (isOption || isClickable || el.closest('[role="listbox"]') || el.closest('[role="menu"]')) {{
-                            el.click();
-                            return 'startswith: ' + fullText.substring(0, 30);
+                        # Check if this is the target option
+                        is_match = False
+                        if option_type == "variations":
+                            # Match "1" with "1 image", "1 variation", "1v" etc.
+                            valid_terms = [search_val, f"{search_val} ", f"{search_val}v", f"{search_val} image", f"{search_val} video", f"{search_val} variation"]
+                            if any(term == opt_text or opt_text == term + 's' for term in valid_terms):
+                                is_match = True
+                        else:
+                            if search_val == opt_text or opt_text == search_val:
+                                is_match = True
+
+                        if is_match:
+                            # Check if already selected
+                            if "✓" in opt.text or "selected" in opt.text.lower() or opt.get_attribute("aria-selected") == "true":
+                                self.log(f"  ✅ {option_type} '{value}' đã được chọn")
+                                try:
+                                    self.driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.ESCAPE)
+                                except: pass
+                                return True
+                            
+                            # Try clicking the option
+                            try:
+                                opt.click()
+                            except:
+                                self.driver.execute_script("arguments[0].click();", opt)
+                                
+                            self.log(f"  ✅ Đã chọn {option_type}: {value}")
+                            option_clicked = True
+                            break
+                    except: continue
+
+                if option_clicked: return True
+                
+                # Second pass: broader check if strict failed
+                for opt in options:
+                    try:
+                        if not opt.is_displayed(): continue
+                        if search_val in opt.text.lower():
+                             self.driver.execute_script("arguments[0].click();", opt)
+                             self.log(f"  ✅ Đã chọn {option_type}: {value} (fallback)")
+                             return True
+                    except: continue
+
+                if option_clicked: return True
+                
+                # JS Fallback for finding and clicking option
+                js_click = f"""
+                (function() {{
+                    var search = '{search_val}';
+                    var type = '{option_type}';
+                    var items = document.querySelectorAll('[role="option"], [role="menuitem"], button, div, span');
+                    for (var i = 0; i < items.length; i++) {{
+                        var txt = items[i].textContent.toLowerCase().replace('✓', '').trim();
+                        if (items[i].offsetParent !== null) {{
+                            var isMatch = false;
+                            if (type === 'variations') {{
+                                if (txt === search || txt === search + ' image' || txt === search + ' images' || 
+                                    txt === search + ' video' || txt === search + ' videos' || 
+                                    txt === search + 'v' || txt === search + ' variation' || txt === search + ' variations') isMatch = true;
+                            }} else {{
+                                if (txt === search || txt.includes(search)) isMatch = true;
+                            }}
+                            
+                            if (isMatch) {{
+                                items[i].click(); return true;
+                            }}
                         }}
                     }}
-                }}
-                
-                // Second pass: partial match (search value contained in element text)
-                for (var i = 0; i < allElements.length; i++) {{
-                    var el = allElements[i];
-                    var rect = el.getBoundingClientRect();
-                    if (rect.width === 0 || rect.height === 0) continue;
-                    if (rect.top > window.innerHeight * 0.85) continue;
-                    if (rect.top < 0) continue;
-                    
-                    var fullText = normalizeText(el.textContent);
-                    
-                    // Text must contain search value AND be relatively short (option-like)
-                    if (fullText.includes(searchValue) && fullText.length < 40) {{
-                        var role = el.getAttribute('role');
-                        if (role === 'option' || role === 'menuitem' || role === 'menuitemradio') {{
-                            el.click();
-                            return 'partial: ' + fullText.substring(0, 30);
-                        }}
-                    }}
-                }}
-                
-                return 'not_found';
-            }})();
-            """
-            
-            try:
-                result = self.driver.execute_script(js_find_and_click)
-                if result and result != 'not_found':
-                    self.log(f"  ✓ Set {option_type}: {value} ({result})")
-                    time.sleep(0.3)
+                    return false;
+                }})();
+                """
+                if self.driver.execute_script(js_click):
+                    self.log(f"  ✅ Đã chọn {option_type}: {value} (via JS)")
                     return True
-                else:
-                    self.log(f"  ⚠️ Không tìm thấy option: {search_value}")
+
+                # Escape if menu still open
+                try:
+                    self.driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.ESCAPE)
+                except: pass
+                
+                self.log(f"  ⚠️ Lần thử {main_attempt+1}: Không click được option {search_val}")
+                time.sleep(2)
+                
             except Exception as e:
-                self.log(f"  ⚠️ JS error: {e}")
-            
-            # Close the dropdown if option not found (press Escape or click elsewhere)
-            try:
-                self.driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.ESCAPE)
-                time.sleep(0.3)
-                self.log(f"  🔽 Đã đóng dropdown")
-            except:
-                pass
-            
-            return False
-            
-        except Exception as e:
-            self.log(f"⚠️ Không thể set {option_type}: {e}")
-            return False
+                self.log(f"  ❌ Lỗi dropdown lần {main_attempt+1}: {e}")
+                time.sleep(2)
+        
+        return False
     
-    def wait_for_generation(self, prompt: str = None, timeout: int = 300, expected_count: int = 1) -> Optional[List[str]]:
+    def wait_for_generation(self, prompt: str = None, timeout: int = 400, expected_count: int = 1, initial_ids: set = None, task: Optional[any] = None) -> Optional[List[str]]:
         """
         Wait for generation to complete and return list of HREFs for NEW items.
         """
         self.log(f"⏳ Đang chờ tạo kết quả... (timeout: {timeout}s, expected: {expected_count} items)")
         start_time = time.time()
         
-        # Wait for submission to process
-        time.sleep(5)
+        # Snapshot current item IDs if not provided
+        if initial_ids is None:
+            initial_ids = set()
+            try:
+                if "/library" not in self.driver.current_url:
+                    self.driver.get(f"{self.BASE_URL}/library")
+                    time.sleep(3)
+                link_elements = self.driver.find_elements(By.CSS_SELECTOR, 'a[href*="/g/gen_"], a[href*="/t/task_"]')
+                initial_ids = {el.get_attribute('href') for el in link_elements if el.get_attribute('href')}
+            except: pass
         
-        # Navigate to library page
-        self.log("📂 Chuyển sang trang Library để theo dõi tiến trình...")
-        self.driver.get(f"{self.BASE_URL}/library")
-        time.sleep(3)
+        # Ensure we are in library for monitoring
+        if "/library" not in self.driver.current_url:
+            self.log("📂 Chuyển sang trang Library để theo dõi...")
+            self.driver.get(f"{self.BASE_URL}/library")
+            time.sleep(3)
         
-        # Snapshot current item IDs to identify NEW items uniquely
-        initial_ids = set()
-        try:
-            # Look for both Success (/g/gen_) and Failed (/t/task_) items
-            link_elements = self.driver.find_elements(By.CSS_SELECTOR, 'a[href*="/g/gen_"], a[href*="/t/task_"]')
-            initial_ids = {el.get_attribute('href') for el in link_elements if el.get_attribute('href')}
-        except: pass
-        
-        # Count initial items
-        initial_count = self._count_video_items()
-        self.log(f"📊 Số item hiện có: {initial_count}")
-        
-        last_count = initial_count
-        refresh_interval = 15  # Refresh every 15 seconds to avoid Cloudflare
-        last_refresh_time = time.time() - refresh_interval 
+        last_status_msg = ""
+        last_status_time = 0
+        log_debounce_sec = 10
+        refresh_interval = 25
+        last_refresh_time = time.time()
         
         while time.time() - start_time < timeout:
             try:
-                elapsed = int(time.time() - start_time)
-                current_time = time.time()
+                # Find matching items (robust matcher)
+                matches = self._find_matching_items(prompt, task=task)
                 
-                # IMPORTANT: Priority Check - Find item matching prompt immediately
-                if prompt:
-                    matches = self._find_matching_items(prompt)
-                    
-                    # Filter for NEW items only (not in initial snapshot)
-                    new_matches = []
-                    for m in matches:
-                        try:
-                            href = m.get_attribute("href")
-                            if not href and m.tag_name != "a":
-                                try: href = m.find_element(By.TAG_NAME, "a").get_attribute("href")
-                                except: pass
-                            
-                            # If we can't find href, assume it's new (unsafe?) or skip?
-                            # ALL items must be NEW (not in initial_ids) to be selected
-                            if href and href in initial_ids:
-                                continue
+                # Filter for NEW items
+                new_matches = []
+                for m in matches:
+                    try:
+                        href = m.get_attribute("href") or m.find_element(By.TAG_NAME, "a").get_attribute("href")
+                        if href and href not in initial_ids:
                             new_matches.append(m)
-                        except: pass
+                    except: pass
+                
+                if new_matches:
+                    # Check loading state
+                    is_ready = True
+                    loading_reason = ""
                     
-                    if new_matches:
-                        # Check if items are ready (not loading)
-                        is_ready = True
-                        for item in new_matches:
-                            try:
-                                # Check for loading indicators in text
-                                txt = (item.text + " " + item.get_attribute("innerText")).lower()
-                                loading_markers = ["%", "generating", "queue", "processing"]
-                                if any(marker in txt for marker in loading_markers):
-                                    is_ready = False
-                                    self.log(f"⏳ Item đang xử lý... Chờ thêm.")
-                                    break
-                            except:
-                                # Stale element, assume not ready or re-find needed
+                    for item in new_matches:
+                        try:
+                            # 1. Check for failed/error status
+                            href = item.get_attribute("href") or ""
+                            txt = (item.text + " " + item.get_attribute("innerText")).lower()
+                            if "/t/task_" in href or "error" in txt:
+                                self.log(f"⚠️ Phát hiện item bị LỖI (ID: {href[-10:] if href else 'N/A'})")
+                                # Return IDs even if failed, so caller can decide
+                                return [href] if href else None
+
+                            # 2. Check for loading indicators
+                            loading_markers = ["generating", "queue", "processing", "loading", "%"]
+                            found_marker = next((m for m in loading_markers if m in txt), None)
+                            if found_marker:
                                 is_ready = False
+                                loading_reason = f"đang {found_marker}"
                                 break
-                                
-                        if is_ready:
-                            # Check if enough items found
-                            if len(new_matches) < expected_count:
-                                self.log(f"⚠️ Mới tìm thấy {len(new_matches)}/{expected_count} items. Đợi thêm...")
-                                continue
                             
-                            self.log(f"✅ Tìm thấy {len(new_matches)} kết quả mới đã hoàn thành!")
+                            spinners = item.find_elements(By.CSS_SELECTOR, ".animate-spin, .loading, [class*='spinner']")
+                            if spinners:
+                                is_ready = False
+                                loading_reason = "đang xử lý (spinner)"
+                                break
+                        except:
+                            is_ready = False
+                            break
+                    
+                    if is_ready:
+                        if len(new_matches) >= expected_count:
+                            self.log(f"✅ Đã có {len(new_matches)} kết quả mới sẵn sàng!")
+                            first = new_matches[0]
+                            meta = []
+                            if getattr(first, '_sora_res', None): meta.append(first._sora_res)
+                            if getattr(first, '_sora_dur', None): meta.append(f"{first._sora_dur}s")
+                            meta_str = f" [{', '.join(meta)}]" if meta else ""
+                            time_str = f" lúc {first._sora_time}" if getattr(first, '_sora_time', None) else ""
+                            self.log(f"  📌 Khớp: '{getattr(first, '_sora_prompt', '---')[:40]}...'{meta_str}{time_str}")
                             
-                            # Return list of HREFs
-                            new_hrefs = []
+                            res_hrefs = []
                             for m in new_matches:
                                 try:
-                                    href = m.get_attribute("href")
-                                    if not href:
-                                        href = m.find_element(By.TAG_NAME, "a").get_attribute("href")
-                                    if href: new_hrefs.append(href)
+                                    h = m.get_attribute("href") or m.find_element(By.TAG_NAME, "a").get_attribute("href")
+                                    if h: res_hrefs.append(h)
                                 except: pass
-                            return new_hrefs if new_hrefs else None
-                    # If not ready, continue waiting loop (refresh will happen)
+                            return res_hrefs if res_hrefs else None
+                        else:
+                            status_msg = f"⏳ Tìm thấy {len(new_matches)}/{expected_count} items mới. Chờ thêm..."
+                    else:
+                        status_msg = f"⏳ Item mới đã xuất hiện nhưng {loading_reason}..."
+                    
+                    if status_msg != last_status_msg or (time.time() - last_status_time > log_debounce_sec):
+                        self.log(status_msg)
+                        last_status_msg = status_msg
+                        last_status_time = time.time()
+                else:
+                    elapsed = int(time.time() - start_time)
+                    if elapsed > 0 and elapsed % 20 == 0:
+                        self.log(f"⏳ Đang soát Library... ({elapsed}s)")
                 
-                # Refresh page every 15 seconds
-                if current_time - last_refresh_time >= refresh_interval:
-                    self.log(f"⏳ Đã chờ {elapsed}s... Refreshing...")
+                # Periodic refresh
+                if time.time() - last_refresh_time >= refresh_interval:
+                    self.log(f"🔄 Refreshing Library... ({int(time.time() - start_time)}s)")
                     self.driver.refresh()
                     time.sleep(3)
-                    # Create JS scroll to top to ensure new items are rendered in virtual list
                     self.driver.execute_script("window.scrollTo(0, 0);")
-                    time.sleep(1)
                     last_refresh_time = time.time()
+                else:
+                    time.sleep(self.check_interval)
                     
-                    # 1. SPECIAL CHECK: Any NEW failed/error items? (Don't rely on prompt match for errors)
-                    try:
-                        failed_links = self.driver.find_elements(By.CSS_SELECTOR, 'a[href*="/t/task_"]')
-                        for link in failed_links:
-                            href = link.get_attribute("href")
-                            if href and href not in initial_ids:
-                                 self.log(f"⚠️ Phát hiện tác vụ lỗi MỚI (ID: {href[-10:]})! Dừng chờ.")
-                                 # Return current new items found
-                                 new_items_err = self.driver.find_elements(By.CSS_SELECTOR, 'a[href*="/g/gen_"], a[href*="/t/task_"]')
-                                 new_hrefs_err = [el.get_attribute('href') for el in new_items_err if el.get_attribute('href') and el.get_attribute('href') not in initial_ids]
-                                 return new_hrefs_err if new_hrefs_err else [href]
-                    except: pass
-
-                    # 2. Re-check prompt matches immediately after refresh
-                    if prompt:
-                        matches = self._find_matching_items(prompt)
-                        # Filter for NEW items only
-                        new_matches = []
-                        for m in matches:
-                            try:
-                                href = m.get_attribute("href")
-                                if not href:
-                                    try: href = m.find_element(By.TAG_NAME, "a").get_attribute("href")
-                                    except: pass
-                                
-                                # ALL items must be NEW (not in initial_ids) to be selected
-                                if href and href in initial_ids:
-                                    continue
-                                new_matches.append(m)
-                            except: pass
-
-                        if new_matches:
-                            # Check if enough items found
-                            if len(new_matches) < expected_count:
-                                self.log(f"⚠️ Mới tìm thấy {len(new_matches)}/{expected_count} items. Đợi thêm...")
-                                continue
-
-                            # Check if error item
-                            is_error = False
-                            for m in new_matches:
-                                try:
-                                    href = m.get_attribute("href") or ""
-                                    txt = m.text.lower()
-                                    if "/t/task_" in href or "error" in txt:
-                                        self.log("⚠️ Phát hiện kết quả bị Lỗi!")
-                                        # Return what we have
-                                        new_items_e2 = self.driver.find_elements(By.CSS_SELECTOR, 'a[href*="/g/gen_"], a[href*="/t/task_"]')
-                                        new_hrefs_e2 = [el.get_attribute('href') for el in new_items_e2 if el.get_attribute('href') and el.get_attribute('href') not in initial_ids]
-                                        return new_hrefs_e2 if new_hrefs_e2 else None
-                                except: pass
-                            
-                            self.log(f"✅ Tìm thấy {len(new_matches)} kết quả mới khớp prompt!")
-                            new_hrefs = []
-                            for m in new_matches:
-                                try:
-                                    h = m.get_attribute("href")
-                                    if h: new_hrefs.append(h)
-                                except: pass
-                            return new_hrefs if new_hrefs else None
-                
-                # Check notification bell
-                if self._check_notification_bell():
-                    self.log("🔔 Notification bell có badge!")
-                    time.sleep(1)
-                    self.driver.refresh()
-                    time.sleep(2)
-                
-                # Fallback: Count items (only if no prompt provided, or as debug)
-                if not prompt:
-                    current_count = self._count_video_items()
-                    if current_count > initial_count:
-                        self.log("✅ Có kết quả mới (dựa trên số lượng)!")
-                        # If no prompt, we just return the new HREFs we find
-                        new_links = self.driver.find_elements(By.CSS_SELECTOR, 'a[href*="/g/gen_"], a[href*="/t/task_"]')
-                        new_hrefs = [el.get_attribute('href') for el in new_links if el.get_attribute('href') and el.get_attribute('href') not in initial_ids]
-                        return new_hrefs if new_hrefs else None
-                
             except Exception as e:
                 err_str = str(e).lower()
-                if "connection refused" in err_str or "10061" in err_str or "max retries exceeded" in err_str:
-                    self.log("❌ Mất kết nối với trình duyệt (Trình duyệt có thể đã bị đóng hoặc crash).")
+                if "invalid session id" in err_str or "connection refused" in err_str:
+                    self.log("❌ Mất kết nối với trình duyệt.")
                     return None
-                self.log(f"⚠️ Check error: {e}")
-            
-            time.sleep(2)
-        
-        self.log("⏰ Timeout - chưa tìm thấy kết quả khớp")
+                self.log(f"⚠️ Warning in wait_loop: {e}")
+                time.sleep(5)
+                
+        self.log("⏰ Hết thời gian chờ kết quả!")
         return None
-    
-    def _find_matching_items(self, prompt: str) -> list:
-        """Find ALL video/image items that match the prompt"""
-        try:
-            # Normalize prompt: take first 100 chars (increased from 30), lowercase
-            search_text = prompt[:100].lower().strip()
-            
-            # Selectors prioritized by DOM structure (Grid -> List)
-            # This ensures we check the Top Grid (Failed/Active) and Top of History first
-            selectors = [
-                # 1. Top Grid (Active/Failed Tasks)
-                'div.grid a[href*="/t/task_"]',
-                'div.grid a[href*="/g/gen_"]',
-                
-                # 2. Virtual List (Target items inside data-index containers)
-                # These are usually ordered by most recent
-                'div[data-index] a[href*="/g/gen_"]',
-                'div[data-index] a[href*="/t/task_"]',
-                
-                # 3. Fallback General Selectors (for older/different layouts)
-                'a[href*="/g/gen_"]',        # Success link
-                'a[href*="/t/task_"]',       # Failed task link
-                '[class*="tile"]',           # Old tile structure
-                '[data-testid*="item"]'
-            ]
-            
-            found_items = []
-            
-            for selector in selectors:
-                items = self.driver.find_elements(By.CSS_SELECTOR, selector)
-                if not items: continue
 
-                # Check top 10 items (newest usually first)
-                for item in items[:15]:
-                    if not item.is_displayed():
+    def _find_matching_items(self, prompt: str, task: Optional[any] = None) -> list:
+        """Robust item matching using specific structure of library footer"""
+        try:
+            # 1. Normalize requirements
+            q_prompt = prompt[:40].lower().strip()
+            q_type = str(task.type).lower().strip() if task and hasattr(task, 'type') else "video"
+            q_res = str(task.resolution).lower().strip() if task and hasattr(task, 'resolution') else ""
+            q_dur = str(task.duration).lower().replace('s', '').strip() if task and hasattr(task, 'duration') else ""
+            
+            is_image = q_type == "image"
+            
+            log_meta = []
+            if not is_image:
+                if q_res: log_meta.append(q_res)
+                if q_dur: log_meta.append(f"{q_dur}s")
+            
+            meta_str = f" [{', '.join(log_meta)}]" if log_meta else " [image]"
+            self.log(f"🔍 Tìm item: '{q_prompt}...'{meta_str}")
+            
+            # 2. Get all containers with data-index
+            containers = self.driver.find_elements(By.CSS_SELECTOR, 'div[data-index]')
+            found = []
+            
+            for container in containers[:15]: # Only check top 15 results
+                try:
+                    if not container.is_displayed(): continue
+                    
+                    # Cấu trúc Sora: footer chi tiết nằm trong flex-col gap-1 hoặc group v.v.
+                    # Ta sẽ lấy toàn bộ text của container và parse
+                    full_text = container.text.lower()
+                    
+                    # 3. Check Prompt (MANDATORY)
+                    if q_prompt not in full_text:
                         continue
                         
-                    # Skip if already added
-                    if item in found_items:
-                        continue
+                    # 4. Extract and check Metadata from the footer labels
+                    # In the provided HTML, resolution, duration and time are in separate <div> siblings
+                    item_res = ""
+                    item_dur = ""
+                    item_time = ""
+                    
+                    # Look for children of the metadata footer div
+                    # Structure usually involves many small divs
+                    child_divs = container.find_elements(By.CSS_SELECTOR, "div.flex-col.gap-1 > div")
+                    if not child_divs: # Fallback: any div inside
+                        child_divs = container.find_elements(By.CSS_SELECTOR, "div div")
                         
-                    try:
-                        # Strategy: Get full text context
-                        text_content = ""
+                    for div in child_divs:
+                        text = div.text.lower().strip()
+                        if not text: continue
                         
-                        # 1. If item is link, check ancestors for context
-                        if item.tag_name == 'a':
-                            try:
-                                # Try to find a container div (go up multiple levels to cover grid/list structures)
-                                # Level 1 (Tile/Group)
-                                container_1 = item.find_element(By.XPATH, "./ancestor::div[contains(@class, 'flex') or contains(@class, 'group')][1]")
-                                text_content += container_1.get_attribute('innerText')
-                                
-                                # Level 2 (Grid/Row)
-                                container_2 = item.find_element(By.XPATH, "./ancestor::div[contains(@class, 'flex') or contains(@class, 'group')][2]")
-                                text_content += " " + container_2.get_attribute('innerText')
-                                
-                                # Level 3 (Main Container - usually contains both Tile and Prompt info)
-                                container_3 = item.find_element(By.XPATH, "./ancestor::div[contains(@class, 'flex') or contains(@class, 'group')][3]")
-                                text_content += " " + container_3.get_attribute('innerText')
-                            except:
-                                pass
-                        
-                        # 2. Add item's own text
-                        text_content += " " + item.text + " " + item.get_attribute('innerText')
-                        
-                        # 3. Check text match
-                        if search_text in text_content.lower():
-                            found_items.append(item)
+                        # Identify by patterns
+                        if 'p' in text and any(r in text for r in ['360', '480', '720', '1080']):
+                            item_res = text
+                        elif 's' in text and len(text) <= 5 and any(d in text for d in ['5', '10', '15', '20']):
+                            item_dur = text.replace('s', '').strip()
+                        elif ':' in text and ('pm' in text or 'am' in text or len(text) <= 8):
+                            item_time = text
+                    
+                    # 5. Verify metadata if task provided (SKIP for images)
+                    if task and not is_image:
+                        # Resolution check
+                        if q_res and item_res and q_res not in item_res:
+                            self.log(f"  ⏭️ Bỏ qua item: lệch Res ({item_res} vs {q_res})")
+                            continue
+                        # Duration check
+                        if q_dur and item_dur and q_dur != item_dur:
+                            self.log(f"  ⏭️ Bỏ qua item: lệch Duration ({item_dur}s vs {q_dur}s)")
                             continue
                             
-                        # 4. Fallback: Check Alt Text of internal image
+                    # 6. Find links
+                    links = container.find_elements(By.CSS_SELECTOR, 'a[href*="/g/gen_"], a[href*="/t/task_"]')
+                    for link in links:
                         try:
-                            img = item.find_element(By.TAG_NAME, 'img')
-                            alt = img.get_attribute('alt')
-                            if alt and search_text in alt.lower():
-                                found_items.append(item)
-                                continue
-                        except:
-                            pass
-                            
-                    except:
-                        continue
-            
-            # Return list of matches
-            return found_items
+                            # Attach metadata to the link object for logging
+                            link._sora_prompt = full_text.split('\n')[0] # Usually first line is name/prompt
+                            link._sora_res = item_res
+                            link._sora_dur = item_dur
+                            link._sora_time = item_time
+                            found.append(link)
+                        except: pass
+                        
+                except Exception as e_row:
+                    continue
+                    
+            return found
             
         except Exception as e:
+            self.log(f"⚠️ Error finding items: {e}")
             return []
 
-    def _process_batch_download(self, prompt: str, variations: int, output_base_path: str) -> bool:
+    def _process_batch_download(self, prompt: str, variations: int, output_base_path: str, initial_ids: set = None, task: Optional[any] = None) -> bool:
         """Download multiple variations looping through items"""
         self.log(f"📥 Bắt đầu download batch ({variations} items)...")
         success_count = 0
@@ -1321,7 +1203,7 @@ class SoraAutomationService:
         # Step 6: Wait for generation
         # Pass variations count so we wait for ALL items to appear
         # wait_for_generation now returns the list of NEW item HREFs
-        new_item_hrefs = self.wait_for_generation(prompt=prompt, expected_count=limit)
+        new_item_hrefs = self.wait_for_generation(prompt=prompt, expected_count=limit, initial_ids=initial_ids, task=task)
         
         if not new_item_hrefs:
             self.log("❌ Không tìm thấy kết quả mới sau khi chờ")
@@ -1822,15 +1704,26 @@ class SoraAutomationService:
     def generate_video(self, prompt: str, image_paths: List[str] = None, output_path: str = "",
                        type: str = None, aspect_ratio: str = None, resolution: str = None,
                        duration: str = None, variations: int = None,
-                       timeout: int = 300) -> bool:
+                       timeout: int = 300, task: Optional[any] = None) -> bool:
     
-        # Step 1: Navigate
+        # PRE-GENERATION SNAPSHOT: Capture current items so we can identify the NEW ones later
+        # We do this FIRST to avoid navigating away from /create after uploads
+        initial_ids = set()
+        try:
+            self.log("📋 Ghi nhớ danh sách video cũ từ Library...")
+            self.driver.get(f"{self.BASE_URL}/library")
+            time.sleep(3)
+            link_elements = self.driver.find_elements(By.CSS_SELECTOR, 'a[href*="/g/gen_"], a[href*="/t/task_"]')
+            initial_ids = {el.get_attribute('href') for el in link_elements if el.get_attribute('href')}
+        except Exception as e:
+            self.log(f"⚠️ Không thể chụp snapshot library: {e}")
+
+        # Step 1: Navigate to Create
         if not self.navigate_to_create():
             return False
         time.sleep(2)
         
         # Step 2: Configure video settings ONLY if different from last time
-        # Normalize and build current settings dict
         current_settings = {
             "type": str(type).lower().strip() if type else "video",
             "aspect_ratio": str(aspect_ratio).strip() if aspect_ratio else "",
@@ -1839,9 +1732,7 @@ class SoraAutomationService:
             "variations": int(variations) if variations else 1
         }
         
-        # Compare with last settings - only configure if different
         settings_human = ", ".join([f"{k}={v}" for k, v in current_settings.items() if v])
-        
         settings_changed = current_settings != self._last_settings
         
         if settings_changed:
@@ -1892,12 +1783,11 @@ class SoraAutomationService:
         
         if output_path:
             # Use new batch download logic (HANDLES WAITING INTERNALLY)
-            # This prevents double-waiting which causes timeout (snapshotting items twice)
-            download_success = self._process_batch_download(prompt, variations, output_path)
+            download_success = self._process_batch_download(prompt, variations, output_path, initial_ids=initial_ids, task=task)
         else:
             # Just wait if no download requested
             count = variations if variations else 1
-            download_success = self.wait_for_generation(prompt=prompt, timeout=timeout, expected_count=count)
+            download_success = self.wait_for_generation(prompt=prompt, timeout=timeout, expected_count=count, initial_ids=initial_ids, task=task)
             
         # Always navigate back to be ready for next task
         self._navigate_back_to_create()
@@ -1928,7 +1818,7 @@ class SoraAutomationService:
                     variations = int(str(variations).split()[0])
                 except: variations = 1
                 
-            output_dir = self.download_dir
+            output_dir = row.output_path if hasattr(row, 'output_path') and row.output_path else self.download_dir
             filename_base = f"sora_{row.stt}_{int(time.time())}"
             
             if row.save_name:
@@ -1936,13 +1826,13 @@ class SoraAutomationService:
                 clean_name = os.path.splitext(row.save_name)[0] # remove extension
                 
                 # Create subfolder with same name
-                output_dir = os.path.join(self.download_dir, clean_name)
+                output_dir = os.path.join(output_dir, clean_name)
                 try:
                     os.makedirs(output_dir, exist_ok=True)
                     self.log(f"📂 Created output directory: {output_dir}")
                 except Exception as e:
                     self.log(f"⚠️ Could not create directory: {e}")
-                    output_dir = self.download_dir # Fallback
+                    output_dir = row.output_path if hasattr(row, 'output_path') and row.output_path else self.download_dir # Fallback
                 
                 filename_base = clean_name
             
@@ -1950,18 +1840,47 @@ class SoraAutomationService:
             # download_video will append _01.png, _02.mp4 etc.
             output_path = os.path.join(output_dir, filename_base)
             
-            # Run the main workflow with video settings
-            success = self.generate_video(
-                prompt=row.prompt,
-                image_paths=getattr(row, 'image_paths', []) or ([row.image_path] if hasattr(row, 'image_path') and row.image_path else []),
-                output_path=output_path,
-                type=row.type,
-                aspect_ratio=row.aspect_ratio,
-                resolution=row.resolution,
-                duration=row.duration,
-                variations=variations, # Use the sanitized local variable
-                timeout=300
-            )
+            # Run the main workflow with video settings and retry logic
+            max_retries = 3
+            success = False
+            for attempt in range(max_retries):
+                if attempt > 0:
+                    self.log(f"🔄 Đang thử lại tác vụ... (Lần {attempt+1}/{max_retries})")
+                    # Dọn dẹp/làm mới trang trước khi thử lại
+                    try:
+                        self.driver.get(self.BASE_URL)
+                        time.sleep(5)
+                        # Verify đã vào được Sora chưa
+                        check_url = self.driver.current_url.lower()
+                        if 'sora.chatgpt.com' not in check_url:
+                            self.log(f"⚠️ Chưa vào được Sora (đang ở {check_url}), thử lại navigate...")
+                            self.driver.get(self.BASE_URL)
+                            time.sleep(5)
+                    except Exception as nav_err:
+                        self.log(f"⚠️ Lỗi khi navigate lại: {nav_err}")
+                        time.sleep(3)
+                    
+                    # Reset settings cache để force re-configure
+                    self._last_settings = {}
+                    
+                success = self.generate_video(
+                    prompt=row.prompt,
+                    image_paths=getattr(row, 'image_paths', []) or ([row.image_path] if hasattr(row, 'image_path') and row.image_path else []),
+                    output_path=output_path,
+                    type=row.type,
+                    aspect_ratio=row.aspect_ratio,
+                    resolution=row.resolution,
+                    duration=row.duration,
+                    variations=variations, # Use the sanitized local variable
+                    timeout=300,
+                    task=row # Pass the whole row as task for metadata verification
+                )
+                
+                if success:
+                    break
+                else:
+                    self.log(f"⚠️ Thử lần {attempt+1}/{max_retries} thất bại.")
+                    time.sleep(2)
             
             duration = time.time() - start_time
             
@@ -1970,7 +1889,7 @@ class SoraAutomationService:
                 "prompt": row.prompt,
                 "output_path": output_path if success else None,
                 "duration_seconds": duration,
-                "error": None if success else "Generation failed"
+                "error": None if success else f"Generation failed after {max_retries} attempts"
             }
             
         except Exception as e:

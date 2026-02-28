@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog, scrolledtext, simpledialog
 import threading
 import queue
+import time
 import os
 import sys
 import shutil
@@ -34,6 +35,7 @@ from core.thread_pool import ThreadPoolManager, Task, TaskStatus
 from services.sheets_service import ExcelService, SheetRow, create_template_excel, GoogleSheetsService
 from services.sora_service import SoraAutomationService
 from services.update_service import UpdateService
+from core.process_utils import kill_browser_processes
 from config.settings import VERSION
 
 
@@ -60,6 +62,7 @@ class SoraToolApp:
         self.profiles = load_profiles()  # Keep old profiles for compatibility
         self.tasks: List[SheetRow] = []
         self.is_running = False
+        self.is_paused = False
         self.thread_pool: ThreadPoolManager = None
         self.browser_instances: Dict[int, BrowserCore] = {}
         self.sora_instances: Dict[int, SoraAutomationService] = {}
@@ -420,6 +423,8 @@ class SoraToolApp:
         
         ttk.Button(toolbar, text="🗑️ Clear Logs", command=self._clear_logs).pack(side="left", padx=5)
         ttk.Button(toolbar, text="💾 Save Logs", command=self._save_logs).pack(side="left", padx=5)
+        ttk.Button(toolbar, text="📋 Copy Logs", command=self._copy_logs).pack(side="left", padx=5)
+        ttk.Button(toolbar, text="🧹 Clean Memory", command=self._cleanup_memory).pack(side="left", padx=5)
         
         self.auto_scroll_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(toolbar, text="Auto Scroll", variable=self.auto_scroll_var).pack(side="right")
@@ -893,7 +898,7 @@ class SoraToolApp:
         filepath = filedialog.asksaveasfilename(
             title="Save Logs",
             defaultextension=".txt",
-            initialname=f"sora_logs_{int(__import__('time').time())}.txt"
+            initialfile=f"sora_logs_{int(__import__('time').time())}.txt"
         )
         if filepath:
             self.log_text.config(state="normal")
@@ -903,6 +908,24 @@ class SoraToolApp:
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(content)
             messagebox.showinfo("Success", f"Logs saved: {filepath}")
+
+    def _copy_logs(self):
+        """Copy logs to clipboard"""
+        self.log_text.config(state="normal")
+        content = self.log_text.get("1.0", "end")
+        self.log_text.config(state="disabled")
+        
+        self.root.clipboard_clear()
+        self.root.clipboard_append(content.strip())
+        messagebox.showinfo("Success", "Đã copy logs vào clipboard!")
+
+    def _cleanup_memory(self):
+        """Clean up orphaned browser processes"""
+        if messagebox.askyesno("Confirm", "Bạn có chắc chắn muốn đóng toàn bộ Chrome và ChromeDriver đang chạy ngầm?\nLưu ý: Thao tác này có thể đóng cả các tab Chrome cá nhân của bạn."):
+            self._log("🧹 Đang dọn dẹp bộ nhớ (giết tiến trình ngầm)...")
+            count = kill_browser_processes()
+            self._log(f"✅ Đã dọn dẹp xong {count} tiến trình.")
+            messagebox.showinfo("Success", f"Đã dọn dẹp xong {count} tiến trình Chrome/ChromeDriver.")
             
     # ==================== Execution Methods ====================
     
@@ -913,12 +936,13 @@ class SoraToolApp:
             return
         
         # Validate profiles
-        if not self.profiles:
-            messagebox.showwarning("Warning", "Please add at least one profile")
+        logged_in_profiles = self.profile_manager.get_logged_in_profiles()
+        if not logged_in_profiles:
+            messagebox.showwarning("Warning", "Không có profile nào đã đăng nhập (Sẵn sàng). Vui lòng đăng nhập ít nhất 1 profile.")
             return
         
         # Get available profiles
-        available_profiles = list(self.profiles.keys())
+        available_profiles = [p.name for p in logged_in_profiles]
         num_profiles = len(available_profiles)
         
         # Limit threads to number of profiles
@@ -928,7 +952,7 @@ class SoraToolApp:
         if requested_threads > num_profiles:
             messagebox.showwarning(
                 "Thread Limit", 
-                f"Chỉ có {num_profiles} profile, giới hạn threads = {num_profiles}\n"
+                f"Chỉ có {num_profiles} profile đã đăng nhập sẵn sàng, giới hạn threads = {num_profiles}\n"
                 f"(Bạn đã chọn {requested_threads} threads)"
             )
             self.thread_count.set(actual_threads)
@@ -1019,7 +1043,7 @@ class SoraToolApp:
             if not profile_name:
                 raise ValueError(f"No profile assigned for thread {thread_id}")
             
-            profile = self.profiles.get(profile_name, {})
+            profile = self.profile_manager.get_profile(profile_name)
             if not profile:
                 raise ValueError(f"Profile '{profile_name}' not found")
             
@@ -1028,19 +1052,60 @@ class SoraToolApp:
             
             self._log(f"[T{thread_id}] Sử dụng profile: {profile_name}")
             
-            browser = BrowserCore(
-                profile_name=profile_name,
-                headless=self.headless_var.get()
-            )
-            browser.init_browser()
-            self.browser_instances[thread_id] = browser
+            # STAGGERED START: Tránh xung đột khi mở nhiều Chrome cùng giây
+            # Tăng lên 8s để đảm bảo Chrome instance trước đã ổn định
+            start_delay = (thread_id - 1) * 8
+            if start_delay > 0:
+                self._log(f"[T{thread_id}] Đợi {start_delay}s để tránh xung đột khởi tạo...")
+                time.sleep(start_delay)
+
+            # Unique port for isolation (default 9222, 9223, ...)
+            unique_port = 9221 + thread_id
             
-            sora = SoraAutomationService(
-                browser=browser,
-                download_dir=str(DOWNLOADS_DIR),
-                log_callback=lambda msg: self._log(f"[T{thread_id}|{profile_name}] {msg}")
-            )
-            self.sora_instances[thread_id] = sora
+            # Thử khởi tạo browser + sora service với retry
+            max_init_retries = 3
+            for init_attempt in range(max_init_retries):
+                browser = None
+                try:
+                    browser = BrowserCore(
+                        profile_name=profile_name,
+                        headless=self.headless_var.get()
+                    )
+                    
+                    browser.init_browser(initial_url="https://sora.chatgpt.com", port=unique_port)
+                    
+                    self.browser_instances[thread_id] = browser
+                    
+                    sora = SoraAutomationService(
+                        browser=browser,
+                        download_dir=str(DOWNLOADS_DIR),
+                        log_callback=lambda msg, tid=thread_id, pn=profile_name: self._log(f"[T{tid}|{pn}] {msg}"),
+                        check_interval=self.check_interval.get()
+                    )
+                    self.sora_instances[thread_id] = sora
+                    self._log(f"[T{thread_id}] ✅ Khởi tạo browser + Sora service thành công")
+                    break  # Thành công, thoát vòng retry
+                    
+                except Exception as e:
+                    self._log(f"[T{thread_id}] ⚠️ Lỗi khởi tạo lần {init_attempt+1}/{max_init_retries}: {e}")
+                    
+                    # Dọn dẹp browser nếu đã mở
+                    if browser:
+                        try:
+                            browser.close()
+                        except:
+                            pass
+                    
+                    # Xóa khỏi instances nếu đã lưu
+                    self.browser_instances.pop(thread_id, None)
+                    self.sora_instances.pop(thread_id, None)
+                    
+                    if init_attempt < max_init_retries - 1:
+                        wait_time = 8 * (init_attempt + 1)
+                        self._log(f"[T{thread_id}] ⏳ Đợi {wait_time}s rồi thử lại...")
+                        time.sleep(wait_time)
+                    else:
+                        raise RuntimeError(f"Không thể khởi tạo browser sau {max_init_retries} lần thử: {e}")
         
         sora = self.sora_instances[thread_id]
         
@@ -1119,8 +1184,33 @@ class SoraToolApp:
         
     def _pause_execution(self):
         """Pause/resume execution"""
-        # TODO: Implement pause functionality
-        pass
+        if not self.thread_pool or not self.is_running:
+            return
+        
+        if not self.is_paused:
+            # Pause
+            self.is_paused = True
+            try:
+                self.thread_pool.pause()
+            except AttributeError:
+                # Backward compatibility: if pause is not available, just log
+                self._log("⚠️ Thread pool không hỗ trợ pause trong phiên bản hiện tại.")
+                self.is_paused = False
+                return
+            self.pause_btn.config(text="▶️ RESUME")
+            self.status_label.config(text="Paused")
+            self._log("⏸ Execution paused")
+        else:
+            # Resume
+            self.is_paused = False
+            try:
+                self.thread_pool.resume()
+            except AttributeError:
+                self._log("⚠️ Thread pool không hỗ trợ resume trong phiên bản hiện tại.")
+                return
+            self.pause_btn.config(text="⏸️ PAUSE")
+            self.status_label.config(text="Running")
+            self._log("▶️ Execution resumed")
         
     def _update_progress(self):
         """Update progress bar and stats"""

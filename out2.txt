@@ -1,0 +1,8 @@
+[1] Starting initialization...
+[2] Starting initialization...
+[2] Initialized in 0.70s
+[1] Initialized in 0.86s
+[1] Title: Example Domain
+[1] Closed.
+[2] Title: Example Domain
+[2] Closed.

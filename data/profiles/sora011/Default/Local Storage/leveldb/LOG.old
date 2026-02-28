@@ -1,7 +1,8 @@
-2026/02/26-23:30:00.720 2154 Reusing MANIFEST C:\Projects\Tool Auto Veo AI\python-tool-sora\data\profiles\sora011\Default\Local Storage\leveldb/MANIFEST-000001
-2026/02/26-23:30:00.729 2154 Recovering log #5
-2026/02/26-23:30:00.739 2154 Level-0 table #7: started
-2026/02/26-23:30:00.789 2154 Level-0 table #7: 1397884 bytes OK
-2026/02/26-23:30:00.804 2154 Delete type=0 #5
-2026/02/26-23:30:11.208 2154 Level-0 table #10: started
-2026/02/26-23:30:11.289 2154 Level-0 table #10: 1398047 bytes OK
+2026/02/28-16:03:51.611 9b4 Reusing MANIFEST C:\Projects\Tool Auto Veo AI\python-tool-sora\data\profiles\sora011\Default\Local Storage\leveldb/MANIFEST-000001
+2026/02/28-16:03:51.618 9b4 Recovering log #102
+2026/02/28-16:03:51.627 9b4 Level-0 table #105: started
+2026/02/28-16:03:51.658 9b4 Level-0 table #105: 1411920 bytes OK
+2026/02/28-16:03:51.664 9b4 Delete type=0 #102
+2026/02/28-16:04:51.698 3fdc Level-0 table #108: started
+2026/02/28-16:04:51.727 3fdc Level-0 table #108: 1411507 bytes OK
+2026/02/28-16:04:51.730 3fdc Delete type=0 #106

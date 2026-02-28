@@ -1,21 +1,17 @@
-2026/02/27-00:08:37.506 bb0 Reusing MANIFEST C:\Projects\Tool Auto Veo AI\python-tool-sora\data\profiles\sora01\Default\Local Storage\leveldb/MANIFEST-000001
-2026/02/27-00:08:37.514 bb0 Recovering log #21
-2026/02/27-00:08:37.525 bb0 Level-0 table #24: started
-2026/02/27-00:08:37.590 bb0 Level-0 table #24: 1398504 bytes OK
-2026/02/27-00:08:37.596 bb0 Recovering log #23
-2026/02/27-00:08:37.649 bb0 Level-0 table #25: started
-2026/02/27-00:08:37.878 bb0 Level-0 table #25: 1398209 bytes OK
-2026/02/27-00:08:38.239 bb0 Delete type=0 #21
-2026/02/27-00:08:38.240 bb0 Delete type=0 #23
-2026/02/27-00:08:38.242 1d38 Compacting 4@0 + 1@1 files
-2026/02/27-00:08:38.461 1d38 Generated table #27@0: 20 keys, 1399433 bytes
-2026/02/27-00:08:38.462 1d38 Compacted 4@0 + 1@1 files => 1399433 bytes
-2026/02/27-00:08:38.520 1d38 compacted to: files[ 0 1 1 0 0 0 0 ]
-2026/02/27-00:08:38.524 1d38 Delete type=2 #17
-2026/02/27-00:08:38.524 1d38 Delete type=2 #19
-2026/02/27-00:08:38.524 1d38 Delete type=2 #22
-2026/02/27-00:08:38.524 1d38 Delete type=2 #24
-2026/02/27-00:08:38.525 1d38 Delete type=2 #25
-2026/02/27-00:09:38.280 1d38 Level-0 table #29: started
-2026/02/27-00:09:38.300 1d38 Level-0 table #29: 1398098 bytes OK
-2026/02/27-00:09:38.329 1d38 Delete type=0 #26
+2026/02/28-17:30:13.721 5220 Reusing MANIFEST C:\Projects\Tool Auto Veo AI\python-tool-sora\data\profiles\sora01\Default\Local Storage\leveldb/MANIFEST-000001
+2026/02/28-17:30:13.729 5220 Recovering log #145
+2026/02/28-17:30:13.739 5220 Level-0 table #148: started
+2026/02/28-17:30:13.789 5220 Level-0 table #148: 1419465 bytes OK
+2026/02/28-17:30:13.829 5220 Delete type=0 #145
+2026/02/28-17:30:13.845 c34 Compacting 4@0 + 1@1 files
+2026/02/28-17:30:13.949 c34 Generated table #150@0: 25 keys, 1419224 bytes
+2026/02/28-17:30:13.949 c34 Compacted 4@0 + 1@1 files => 1419224 bytes
+2026/02/28-17:30:13.950 c34 compacted to: files[ 0 1 0 0 0 0 0 ]
+2026/02/28-17:30:13.951 c34 Delete type=2 #139
+2026/02/28-17:30:13.951 c34 Delete type=2 #141
+2026/02/28-17:30:13.952 c34 Delete type=2 #143
+2026/02/28-17:30:13.952 c34 Delete type=2 #146
+2026/02/28-17:30:13.952 c34 Delete type=2 #148
+2026/02/28-17:31:13.885 c34 Level-0 table #152: started
+2026/02/28-17:31:13.932 c34 Level-0 table #152: 1418987 bytes OK
+2026/02/28-17:31:13.935 c34 Delete type=0 #149

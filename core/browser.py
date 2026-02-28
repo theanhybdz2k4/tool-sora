@@ -6,6 +6,7 @@ Browser Core Module - Quản lý browser với undetected-chromedriver
 import os
 import time
 import logging
+import json
 from typing import Optional
 
 import undetected_chromedriver as uc
@@ -72,8 +73,57 @@ class BrowserCore:
         # Tạo thư mục profile nếu chưa có
         os.makedirs(self.profile_dir, exist_ok=True)
     
-    def init_browser(self, retries: int = 3) -> uc.Chrome:
+    def init_browser(self, initial_url: str = None, port: int = None, retries: int = 3) -> uc.Chrome:
         """Khởi tạo và trả về browser instance với cơ chế retry"""
+        
+        # SỬA LỖI: Xóa SingletonLock file nếu tồn tại (Chrome tạo file này để ngăn mở nhiều instance cùng profile)
+        # Nếu Chrome crash, file này không bị xóa và sẽ ngăn Chrome mở lại
+        try:
+            singleton_lock = os.path.join(self.profile_dir, "SingletonLock")
+            if os.path.exists(singleton_lock):
+                try:
+                    os.remove(singleton_lock)
+                    logger.info(f"🔓 Đã xóa SingletonLock cho profile: {self.profile_name}")
+                except Exception:
+                    pass
+            
+            # Cũng xóa SingletonSocket, SingletonCookie (Linux/Mac nhưng cũng kiểm tra cho chắc)
+            for lock_file in ["SingletonSocket", "SingletonCookie"]:
+                lock_path = os.path.join(self.profile_dir, lock_file)
+                if os.path.exists(lock_path):
+                    try:
+                        os.remove(lock_path)
+                    except Exception:
+                        pass
+        except Exception as e:
+            logger.warning(f"Lỗi xóa SingletonLock: {e}")
+        
+        # SỬA LỖI: Xử lý file Preferences (Nơi Chrome lưu đủ thứ rác gây nặng máy)
+        try:
+            pref_paths = [
+                os.path.join(self.profile_dir, "Default", "Preferences"),
+                os.path.join(self.profile_dir, "Local State")
+            ]
+            for p in pref_paths:
+                if os.path.exists(p):
+                    size_mb = os.path.getsize(p) / (1024 * 1024)
+                    
+                    # Nếu file > 20MB hoặc lỗi JSON thì XÓA THẲNG để Chrome làm cái mới nhẹ hơn
+                    is_bad = size_mb > 20
+                    if not is_bad:
+                        try:
+                            with open(p, 'r', encoding='utf-8') as f:
+                                json.load(f)
+                        except:
+                            is_bad = True
+                    
+                    if is_bad:
+                        logger.warning(f"🔥 Xóa file rác Preferences: {p} ({size_mb:.2f}MB)")
+                        os.remove(p)
+                        logger.info(f"✅ Đã xóa Preferences để tool chạy nhẹ và ổn định nhất.")
+        except Exception as e:
+            logger.error(f"Lỗi khi dọn dẹp profile: {e}")
+
         for attempt in range(retries):
             try:
                 logger.info(f"Đang khởi tạo browser với profile: {self.profile_name} (Lần {attempt + 1})")
@@ -87,6 +137,19 @@ class BrowserCore:
                 options.add_argument("--no-sandbox")
                 options.add_argument("--disable-gpu")
                 options.add_argument("--window-size=1920,1080")
+                
+                # SỬA LỖI: Chống các popup "Chào mừng" của Chrome khi reset profile
+                options.add_argument("--no-first-run")
+                options.add_argument("--no-default-browser-check")
+                options.add_argument("--disable-sync")
+                options.add_argument("--disable-search-engine-choice-screen")
+                options.add_argument("--disable-features=SearchEngineChoiceScreen")
+                options.add_argument("--disable-notifications")
+                options.add_argument("--disable-popup-blocking")
+                
+                if port:
+                    options.add_argument(f"--remote-debugging-port={port}")
+                    logger.info(f"Sử dụng Remote Debugging Port: {port}")
                 
                 prefs = {
                     "download.default_directory": os.path.join(os.getcwd(), "data", "output"),
@@ -102,16 +165,44 @@ class BrowserCore:
                 
                 # Tự động phát hiện version
                 chrome_version = get_chrome_main_version()
+                
                 if chrome_version:
-                    self.driver = uc.Chrome(options=options, version_main=chrome_version)
+                    self.driver = uc.Chrome(
+                        options=options, 
+                        version_main=chrome_version
+                        # Gỡ bỏ user_multi_procs và use_subprocess để đảm bảo ổn định tối đa trong bản build EXE
+                    )
                 else:
                     # Nếu không tìm thấy, để undetected_chromedriver tự quyết định (fallback)
-                    self.driver = uc.Chrome(options=options)
+                    self.driver = uc.Chrome(
+                        options=options
+                    )
                     
                 self.driver.set_page_load_timeout(PAGE_LOAD_TIMEOUT)
                 
-                # Chờ một chút để driver sẵn sàng hoàn toàn
-                time.sleep(1)
+                # Chờ một lúc để driver sẵn sàng hoàn toàn (Tăng lên 5s để đảm bảo ổn định)
+                time.sleep(5)
+
+                # Điều hướng ngay lập tức nếu có URL ban đầu (với cơ chế RE-NAVIGATE cực mạnh)
+                if initial_url:
+                    logger.info(f"Điều hướng ngay đến URL khởi tạo: {initial_url}")
+                    for nav_attempt in range(5): # Thử tối đa 5 lần
+                        try:
+                            self.driver.get(initial_url)
+                            time.sleep(3 + nav_attempt) # Tăng dần thời gian chờ mỗi lần thử
+                            
+                            # KIỂM TRA CHỐT: Nếu vẫn ở trang trắng hoặc trang Google, ép load lại
+                            current = self.driver.current_url.lower()
+                            if any(target in current for target in ["sora.chatgpt.com", "auth.openai.com"]):
+                                logger.info(f"✅ Đã điều hướng đúng đến: {current}")
+                                break
+                            else:
+                                logger.warning(f"⚠️ Đang ở nhầm trang ({current}), thử điều hướng lại (Lần {nav_attempt+1})...")
+                                time.sleep(2 * (nav_attempt + 1))  # Exponential backoff
+                        except Exception as nav_e:
+                            if nav_attempt == 4: raise nav_e
+                            logger.warning(f"Lỗi điều hướng (Attempt {nav_attempt+1}): {nav_e}")
+                            time.sleep(2 * (nav_attempt + 1))  # Exponential backoff
                 
                 logger.info(f"Khởi tạo browser thành công với profile: {self.profile_name}")
                 return self.driver
@@ -131,33 +222,40 @@ class BrowserCore:
     
     def navigate(self, url: str) -> bool:
         """
-        Điều hướng đến URL
-        
-        Args:
-            url: URL cần điều hướng
-            
-        Returns:
-            True nếu thành công, False nếu thất bại
+        Điều hướng đến URL với cơ chế tự động kết nối lại nếu trình duyệt bị mất kết nối (WinError 10061)
         """
         if not self.driver:
             logger.error("Browser chưa được khởi tạo")
             return False
         
-        try:
-            logger.info(f"Đang điều hướng đến: {url}")
-            self.driver.get(url)
-            # Log verify xem đã thực sự ở page đó chưa
-            time.sleep(2)
-            actual_url = self.driver.current_url
-            logger.info(f"URL hiện tại sau điều hướng: {actual_url}")
-            return True
-        except Exception as e:
-            err_str = str(e).lower()
-            if "connection refused" in err_str or "10061" in err_str:
-                logger.error(f"❌ Mất kết nối trình duyệt (WinError 10061): {url}")
-            else:
-                logger.error(f"Lỗi điều hướng: {e}")
-            return False
+        for attempt in range(2):
+            try:
+                logger.info(f"Đang điều hướng đến: {url}")
+                self.driver.get(url)
+                time.sleep(2)
+                
+                # Verify navigation
+                actual_url = self.driver.current_url
+                logger.info(f"URL hiện tại sau điều hướng: {actual_url}")
+                return True
+                
+            except Exception as e:
+                err_str = str(e).lower()
+                # SỬA LỖI: Lỗi WinError 10061 thường do browser crash hoặc mất remote debugging interface
+                if "connection refused" in err_str or "10061" in err_str:
+                    logger.error(f"❌ Mất kết nối trình duyệt (Attempt {attempt+1}): {e}")
+                    if attempt == 0:
+                        logger.info("🔄 Thử khởi tạo lại driver và điều hướng tiếp...")
+                        try:
+                            self.init_browser(initial_url=url)
+                            return True
+                        except: pass
+                else:
+                    logger.error(f"Lỗi điều hướng: {e}")
+                
+                if attempt == 1: return False
+                time.sleep(2)
+        return False
     
     def wait_for_element(self, selector: str, timeout: int = None, by: By = By.CSS_SELECTOR) -> Optional[object]:
         """

@@ -22,7 +22,7 @@ from config.settings import (
 from core.browser import BrowserCore
 from core.thread_pool import ThreadPoolManager, Task, TaskStatus
 from services.sheets_service import ExcelService, SheetRow, create_template_excel
-from services.sora_service import SoraAutomationService, GenerationStatus
+from services.sora_service import SoraAutomationService
 
 # Set appearance mode and color theme
 ctk.set_appearance_mode("dark")
@@ -872,7 +872,7 @@ class SoraToolModernApp:
             title="Lưu Template",
             defaultextension=".xlsx",
             initialdir=str(downloads_dir),  # Mở ở thư mục Downloads
-            initialname="sora_template.xlsx",
+            initialfile="sora_template.xlsx",
             filetypes=[("Excel Files", "*.xlsx")]
         )
         if filepath:

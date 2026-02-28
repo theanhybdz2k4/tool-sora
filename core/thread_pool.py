@@ -64,6 +64,8 @@ class ThreadPoolManager:
         self._lock = threading.Lock()
         self._tasks: Dict[int, Task] = {}
         self._next_task_id = 1
+        self._pause_event = threading.Event()
+        self._pause_event.set()
         
     def log(self, message: str, thread_id: int = None):
         """Log a message"""
@@ -115,6 +117,13 @@ class ThreadPoolManager:
         
         while self._running:
             try:
+                # Respect pause state
+                while self._running and not self._pause_event.is_set():
+                    time.sleep(0.2)
+                
+                if not self._running:
+                    break
+
                 # Get task from queue with timeout
                 try:
                     task = self._task_queue.get(timeout=1.0)
@@ -171,6 +180,7 @@ class ThreadPoolManager:
             return
             
         self._running = True
+        self._pause_event.set()
         self._workers = []
         
         for i in range(self.max_workers):
@@ -183,6 +193,8 @@ class ThreadPoolManager:
     def stop(self, wait: bool = True):
         """Stop the thread pool"""
         self._running = False
+        # Ensure workers are not stuck in paused state
+        self._pause_event.set()
         
         # Send poison pills
         for _ in self._workers:
@@ -194,6 +206,20 @@ class ThreadPoolManager:
                 
         self._workers = []
         self.log("🛑 Thread pool stopped")
+    
+    def pause(self):
+        """Pause processing new tasks"""
+        self._pause_event.clear()
+        self.log("⏸ Thread pool paused")
+    
+    def resume(self):
+        """Resume processing tasks"""
+        self._pause_event.set()
+        self.log("▶️ Thread pool resumed")
+    
+    def is_paused(self) -> bool:
+        """Return True if pool is currently paused"""
+        return not self._pause_event.is_set()
         
     def wait_completion(self, timeout: float = None):
         """Wait for all tasks to complete"""

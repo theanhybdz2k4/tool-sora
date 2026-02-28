@@ -1,17 +1,17 @@
-2026/02/26-23:30:15.645 2600 Reusing MANIFEST C:\Projects\Tool Auto Veo AI\python-tool-sora\data\profiles\sora011\Default\Local Storage\leveldb/MANIFEST-000001
-2026/02/26-23:30:15.652 2600 Recovering log #8
-2026/02/26-23:30:15.662 2600 Level-0 table #10: started
-2026/02/26-23:30:15.717 2600 Level-0 table #10: 1398047 bytes OK
-2026/02/26-23:30:15.721 2600 Recovering log #9
-2026/02/26-23:30:15.724 2600 Reusing old log C:\Projects\Tool Auto Veo AI\python-tool-sora\data\profiles\sora011\Default\Local Storage\leveldb/000009.log 
-2026/02/26-23:30:15.731 2600 Delete type=0 #8
-2026/02/26-23:30:15.734 4fbc Compacting 4@0 + 0@1 files
-2026/02/26-23:30:15.929 4fbc Generated table #11@0: 21 keys, 1397227 bytes
-2026/02/26-23:30:15.929 4fbc Compacted 4@0 + 0@1 files => 1397227 bytes
-2026/02/26-23:30:15.933 4fbc compacted to: files[ 0 1 0 0 0 0 0 ]
-2026/02/26-23:30:15.935 4fbc Delete type=2 #3
-2026/02/26-23:30:15.935 4fbc Delete type=2 #4
-2026/02/26-23:30:15.935 4fbc Delete type=2 #7
-2026/02/26-23:30:15.935 4fbc Delete type=2 #10
-2026/02/26-23:30:22.645 3ff0 Level-0 table #13: started
-2026/02/26-23:30:22.707 3ff0 Level-0 table #13: 1398303 bytes OK
+2026/02/28-17:30:18.456 f68 Reusing MANIFEST C:\Projects\Tool Auto Veo AI\python-tool-sora\data\profiles\sora011\Default\Local Storage\leveldb/MANIFEST-000001
+2026/02/28-17:30:18.463 f68 Recovering log #107
+2026/02/28-17:30:18.480 f68 Level-0 table #110: started
+2026/02/28-17:30:18.526 f68 Level-0 table #110: 1410727 bytes OK
+2026/02/28-17:30:18.541 f68 Delete type=0 #107
+2026/02/28-17:30:18.542 41d4 Compacting 4@0 + 1@1 files
+2026/02/28-17:30:18.752 41d4 Generated table #112@0: 21 keys, 1412536 bytes
+2026/02/28-17:30:18.753 41d4 Compacted 4@0 + 1@1 files => 1412536 bytes
+2026/02/28-17:30:18.754 41d4 compacted to: files[ 0 1 0 0 0 0 0 ]
+2026/02/28-17:30:18.757 41d4 Delete type=2 #101
+2026/02/28-17:30:18.757 41d4 Delete type=2 #103
+2026/02/28-17:30:18.758 41d4 Delete type=2 #105
+2026/02/28-17:30:18.758 41d4 Delete type=2 #108
+2026/02/28-17:30:18.758 41d4 Delete type=2 #110
+2026/02/28-17:31:18.673 5330 Level-0 table #114: started
+2026/02/28-17:31:18.718 5330 Level-0 table #114: 1411510 bytes OK
+2026/02/28-17:31:18.721 5330 Delete type=0 #111

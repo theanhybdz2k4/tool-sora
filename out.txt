@@ -1,0 +1,24 @@
+Exception in thread Thread-1 (run_browser):
+Traceback (most recent call last):
+  File "C:\Users\Admin\AppData\Local\Programs\Python\Python311\Lib\threading.py", line 1045, in _bootstrap_inner
+Exception in thread Thread-2 (run_browser):
+Traceback (most recent call last):
+  File "C:\Users\Admin\AppData\Local\Programs\Python\Python311\Lib\threading.py", line 1045, in _bootstrap_inner
+    self.run()
+  File "C:\Users\Admin\AppData\Local\Programs\Python\Python311\Lib\threading.py", line 982, in run
+    self._target(*self._args, **self._kwargs)
+    self.run()
+  File "C:\Projects\Tool Auto Veo AI\python-tool-sora\test_uc.py", line 6, in run_browser
+  File "C:\Users\Admin\AppData\Local\Programs\Python\Python311\Lib\threading.py", line 982, in run
+    print(f"[{thread_id}] B\u1eaft \u0111\u1ea7u kh\u1edfi t\u1ea1o...")
+  File "C:\Users\Admin\AppData\Local\Programs\Python\Python311\Lib\encodings\cp1252.py", line 19, in encode
+    self._target(*self._args, **self._kwargs)
+  File "C:\Projects\Tool Auto Veo AI\python-tool-sora\test_uc.py", line 6, in run_browser
+    print(f"[{thread_id}] B\u1eaft \u0111\u1ea7u kh\u1edfi t\u1ea1o...")
+  File "C:\Users\Admin\AppData\Local\Programs\Python\Python311\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u1eaf' in position 5: character maps to <undefined>
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u1eaf' in position 5: character maps to <undefined>
