@@ -921,11 +921,11 @@ class SoraToolApp:
 
     def _cleanup_memory(self):
         """Clean up orphaned browser processes"""
-        if messagebox.askyesno("Confirm", "Bạn có chắc chắn muốn đóng toàn bộ Chrome và ChromeDriver đang chạy ngầm?\nLưu ý: Thao tác này có thể đóng cả các tab Chrome cá nhân của bạn."):
+        if messagebox.askyesno("Confirm", "Bạn có chắc chắn muốn đóng toàn bộ Chromium/Playwright đang chạy ngầm?\nLưu ý: Thao tác này có thể đóng cả các tab Chromium cá nhân của bạn."):
             self._log("🧹 Đang dọn dẹp bộ nhớ (giết tiến trình ngầm)...")
             count = kill_browser_processes()
             self._log(f"✅ Đã dọn dẹp xong {count} tiến trình.")
-            messagebox.showinfo("Success", f"Đã dọn dẹp xong {count} tiến trình Chrome/ChromeDriver.")
+            messagebox.showinfo("Success", f"Đã dọn dẹp xong {count} tiến trình Chromium/Playwright.")
             
     # ==================== Execution Methods ====================
     

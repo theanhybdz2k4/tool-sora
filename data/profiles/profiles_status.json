@@ -1,15 +1,15 @@
 {
-  "sora01": {
-    "name": "sora01",
+  "sora1": {
+    "name": "sora1",
     "status": "logged_in",
-    "last_checked": "2026-02-28T00:35:07.956947",
+    "last_checked": "2026-03-02T01:03:12.857635",
     "last_used": null,
     "error_message": ""
   },
-  "sora011": {
-    "name": "sora011",
+  "sora2": {
+    "name": "sora2",
     "status": "logged_in",
-    "last_checked": "2026-02-28T00:35:18.197222",
+    "last_checked": "2026-03-02T01:05:45.138597",
     "last_used": null,
     "error_message": ""
   }

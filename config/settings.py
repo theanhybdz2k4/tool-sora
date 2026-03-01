@@ -55,7 +55,7 @@ def migrate_data():
 
 migrate_data()
 
-# Browser settings for undetected_chromedriver
+# Browser settings for Playwright
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 PAGE_LOAD_TIMEOUT = 60
 ELEMENT_TIMEOUT = 30

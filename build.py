@@ -21,12 +21,16 @@ def check_pyinstaller():
         return True
 
 def install_dependencies():
-    """Install all dependencies"""
+    """Install all dependencies including Playwright browsers"""
     print("📦 Đang kiểm tra và cài đặt dependencies...")
     requirements_file = Path("requirements.txt")
     if requirements_file.exists():
         subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", str(requirements_file)])
         print("✅ Đã cài đặt dependencies")
+        
+        print("🌐 Đang cài đặt Playwright Chromium...")
+        subprocess.check_call([sys.executable, "-m", "playwright", "install", "chromium"])
+        print("✅ Đã cài đặt Playwright browser")
     else:
         print("⚠️ Không tìm thấy requirements.txt")
 

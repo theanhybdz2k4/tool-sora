@@ -26,6 +26,15 @@ if errorlevel 1 (
     exit /b 1
 )
 
+REM Playwright browser installation
+echo Cai dat Playwright Chromium...
+playwright install chromium
+if errorlevel 1 (
+    echo Loi cai dat Playwright browser!
+    pause
+    exit /b 1
+)
+
 REM Clean previous builds
 echo Xoa build cu...
 if exist build rmdir /s /q build

@@ -5,8 +5,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 def kill_browser_processes():
-    """Kill all Chrome and ChromeDriver processes to free up memory"""
-    targets = ["chrome.exe", "chromedriver.exe"]
+    """Kill all Playwright/Chromium processes to free up memory"""
+    targets = ["chromium", "chrome.exe", "playwright"]
     killed_count = 0
     
     logger.info("Starting browser process cleanup...")
@@ -15,7 +15,6 @@ def kill_browser_processes():
         try:
             name = proc.info['name'].lower()
             if any(target in name for target in targets):
-                # Optionally check if it belongs to this user or some specific criteria
                 logger.info(f"Killing process: {name} (PID: {proc.info['pid']})")
                 proc.kill()
                 killed_count += 1

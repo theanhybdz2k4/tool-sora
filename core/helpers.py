@@ -1,12 +1,8 @@
 """
-Common helper functions for Sora automation
+Common helper functions for Sora automation (Playwright version)
 """
 import time
 from typing import Callable, Any
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
 
 
 def wait_for_condition(
@@ -70,121 +66,91 @@ def retry_on_exception(
     raise last_exception
 
 
-def find_element_by_text(
-    driver,
-    text: str,
-    element_type: str = "*",
-    timeout: int = 5,
-    case_sensitive: bool = False
-) -> Any:
+def find_element_by_text(page, text: str, element_type: str = "*", timeout: int = 5000) -> Any:
     """
-    Find element by visible text content
+    Find element by visible text content using Playwright
     
     Args:
-        driver: Selenium WebDriver instance
+        page: Playwright Page instance
         text: Text to search for
         element_type: HTML element type (default: any)
-        timeout: Maximum time to wait
-        case_sensitive: Whether search is case sensitive
+        timeout: Maximum time to wait in ms
         
     Returns:
-        WebElement if found, None otherwise
+        Locator if found, None otherwise
     """
     try:
-        if case_sensitive:
-            xpath = f"//{element_type}[contains(text(), '{text}')]"
-        else:
-            xpath = f"//{element_type}[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '{text.lower()}')]"
-        
-        wait = WebDriverWait(driver, timeout)
-        return wait.until(EC.presence_of_element_located((By.XPATH, xpath)))
-    except TimeoutException:
+        locator = page.get_by_text(text, exact=False)
+        locator.wait_for(timeout=timeout)
+        return locator
+    except Exception:
         return None
 
 
-def safe_click(driver, element, use_js: bool = False) -> bool:
+def safe_click(page, selector: str, force: bool = False) -> bool:
     """
     Safely click an element with fallback to JavaScript
     
     Args:
-        driver: Selenium WebDriver instance
-        element: Element to click
-        use_js: Force use of JavaScript click
+        page: Playwright Page instance
+        selector: CSS selector
+        force: Force click without waiting for actionability
         
     Returns:
         True if successful, False otherwise
     """
     try:
-        if use_js:
-            driver.execute_script("arguments[0].click();", element)
-        else:
-            try:
-                element.click()
-            except Exception:
-                # Fallback to JS click
-                driver.execute_script("arguments[0].click();", element)
+        page.click(selector, force=force)
         return True
     except Exception:
-        return False
+        try:
+            page.evaluate(f"document.querySelector('{selector}').click()")
+            return True
+        except Exception:
+            return False
 
 
-def scroll_to_element(driver, element, align_to_top: bool = True):
-    """
-    Scroll element into view
-    
-    Args:
-        driver: Selenium WebDriver instance
-        element: Element to scroll to
-        align_to_top: Whether to align to top of viewport
-    """
-    driver.execute_script(
-        f"arguments[0].scrollIntoView({{block: '{'start' if align_to_top else 'center'}'}});",
-        element
-    )
-    time.sleep(0.3)  # Wait for scroll animation
-
-
-def get_element_text(element, default: str = "") -> str:
+def get_element_text(page, selector: str, default: str = "") -> str:
     """
     Safely get element text content
     
     Args:
-        element: WebElement
+        page: Playwright Page instance
+        selector: CSS selector
         default: Default value if text cannot be retrieved
         
     Returns:
         Element text or default value
     """
     try:
-        return element.text or element.get_attribute("textContent") or default
+        return page.text_content(selector) or default
     except Exception:
         return default
 
 
-def is_element_visible(element) -> bool:
+def is_element_visible(page, selector: str) -> bool:
     """
     Check if element is visible on page
     
     Args:
-        element: WebElement to check
+        page: Playwright Page instance
+        selector: CSS selector
         
     Returns:
         True if visible, False otherwise
     """
     try:
-        return element.is_displayed() and element.is_enabled()
+        return page.is_visible(selector)
     except Exception:
         return False
 
 
-def wait_for_page_load(driver, timeout: int = 30):
+def wait_for_page_load(page, timeout: int = 30000):
     """
     Wait for page to finish loading
     
     Args:
-        driver: Selenium WebDriver instance
-        timeout: Maximum time to wait
+        page: Playwright Page instance
+        timeout: Maximum time to wait in ms
     """
-    WebDriverWait(driver, timeout).until(
-        lambda d: d.execute_script("return document.readyState") == "complete"
-    )
+    page.wait_for_load_state("domcontentloaded", timeout=timeout)

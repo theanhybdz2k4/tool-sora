@@ -1,8 +1,0 @@
-2026/02/28-16:03:51.611 9b4 Reusing MANIFEST C:\Projects\Tool Auto Veo AI\python-tool-sora\data\profiles\sora011\Default\Local Storage\leveldb/MANIFEST-000001
-2026/02/28-16:03:51.618 9b4 Recovering log #102
-2026/02/28-16:03:51.627 9b4 Level-0 table #105: started
-2026/02/28-16:03:51.658 9b4 Level-0 table #105: 1411920 bytes OK
-2026/02/28-16:03:51.664 9b4 Delete type=0 #102
-2026/02/28-16:04:51.698 3fdc Level-0 table #108: started
-2026/02/28-16:04:51.727 3fdc Level-0 table #108: 1411507 bytes OK
-2026/02/28-16:04:51.730 3fdc Delete type=0 #106
