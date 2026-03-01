@@ -1,0 +1,8 @@
+{
+  "sora1": {
+    "cache_dir": "C:\\Animo\\Sora\\tool-sora-playwright\\chrome_cache\\sora1"
+  },
+  "sora2": {
+    "cache_dir": "C:\\Animo\\Sora\\tool-sora-playwright\\chrome_cache\\sora2"
+  }
+}

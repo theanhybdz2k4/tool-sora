@@ -1,39 +1,30 @@
-# Python Tool Sora
+# Data & profiles (contains cookies, sessions)
+data/profiles/
+data/downloads/
 
-## Ignore Python
+# Python
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-venv/
-venv_*
+*.pyc
+*.pyo
 *.egg-info/
 dist/
 build/
-
-# Profiles & Data
-data/
-chrome_cache/
-
-# Downloads
-downloads/
-
-# Logs
-logs/
-*.log
+*.spec
 
 # IDE
 .vscode/
 .idea/
 
+# Output
+Output/
+
+# Logs
+*.log
+
 # OS
-.DS_Store
 Thumbs.db
+.DS_Store
 
-# Config (keep template, ignore actual)
-config/profiles.json
-
-# Build
-*.exe
-*.spec
+# Env
+.env
+venv/

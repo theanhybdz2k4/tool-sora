@@ -1163,17 +1163,21 @@ class SoraToolApp:
     def _stop_execution(self):
         """Stop execution"""
         if self.thread_pool:
-            self.thread_pool.stop(wait=False)
+            self.thread_pool.stop(wait=True)
             
-        # Close browsers
-        for browser in self.browser_instances.values():
+        # Close all browsers
+        browser_count = len(self.browser_instances)
+        for tid, browser in self.browser_instances.items():
             try:
                 browser.close()
+                self._log(f"🔒 Đã đóng browser thread #{tid}")
             except:
                 pass
                 
         self.browser_instances.clear()
         self.sora_instances.clear()
+        if browser_count > 0:
+            self._log(f"🔒 Đã đóng {browser_count} browser(s)")
         
         self.is_running = False
         self.start_btn.config(state="normal")
